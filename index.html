@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BioCity: Build a Healthy World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#CFEEFB;--panel:#FFFFFF;--ink:#1D2B38;--mut:#52646F;--line:#D3E1E9;--ok:#176B46;--okbg:#E2F5EA;--no:#8A4B00;--nobg:#FFF0D6;--inf:#244C99;--infbg:#E4EDFC;--btn:#17775A;--btnink:#FFFFFF;--sky1:#A5DCF8;--sky2:#E3F6FF;--chip:#EEF5F8;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E202D;--panel:#17303E;--ink:#EAF4F8;--mut:#A9BEC9;--line:#2C4858;--ok:#7FDDAA;--okbg:#15392B;--no:#F5BE70;--nobg:#3B2D12;--inf:#A9C3F7;--infbg:#16294B;--btn:#34B88A;--btnink:#04261B;--sky1:#12354B;--sky2:#1D4B65;--chip:#1F3B4A}}
+:root[data-theme="dark"]{--bg:#0E202D;--panel:#17303E;--ink:#EAF4F8;--mut:#A9BEC9;--line:#2C4858;--ok:#7FDDAA;--okbg:#15392B;--no:#F5BE70;--nobg:#3B2D12;--inf:#A9C3F7;--infbg:#16294B;--btn:#34B88A;--btnink:#04261B;--sky1:#12354B;--sky2:#1D4B65;--chip:#1F3B4A}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);font-size:18px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;min-height:100vh}
+body.board{font-size:1.18em}
+h1,h2,h3,.disp{font-family:Fredoka,"Trebuchet MS",system-ui,sans-serif;font-weight:600;line-height:1.15;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed}
+:focus-visible{outline:4px solid #F5B301;outline-offset:2px;border-radius:8px}
+svg [data-act]:focus-visible{outline:none}
+svg [data-act]:focus-visible .hit{stroke:#F5B301;stroke-width:5}
+.mut{color:var(--mut)}
+.top{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;padding:.55rem 1rem;background:var(--panel);border-bottom:3px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+.logo{display:flex;align-items:center;gap:.5rem;font-family:Fredoka,sans-serif;font-weight:700;font-size:1.35rem}
+.logo i{font-style:normal;font-size:1.6rem}
+.chip{background:var(--chip);border:2px solid var(--line);border-radius:999px;padding:.2rem .75rem;font-weight:700;font-size:.85rem;white-space:nowrap}
+.chip.obj{max-width:34rem;overflow:hidden;text-overflow:ellipsis}
+.grow{flex:1}
+.btn{border:3px solid var(--line);background:var(--panel);border-radius:14px;padding:.55rem 1.05rem;min-height:48px;font-weight:700}
+.btn:hover:not(:disabled){border-color:var(--btn)}
+.btn.go{background:var(--btn);border-color:var(--btn);color:var(--btnink);font-size:1.05rem}
+.btn.sm{min-height:40px;padding:.3rem .8rem;font-size:.9rem}
+.btn.ghost{background:transparent}
+.iconbtn{width:48px;height:48px;border-radius:14px;border:3px solid var(--line);background:var(--panel);font-size:1.25rem;display:grid;place-items:center;padding:0}
+.wrap{max-width:1500px;margin:0 auto;padding:1rem}
+.card{background:var(--panel);border:3px solid var(--line);border-radius:20px;padding:1rem 1.1rem}
+.card h3{font-size:1.1rem;margin-bottom:.5rem}
+.citygrid{display:grid;grid-template-columns:minmax(0,1fr) 22rem;gap:1rem;align-items:start}
+@media (max-width:1000px){.citygrid{grid-template-columns:1fr}}
+.mapbox{background:linear-gradient(var(--sky1),var(--sky2));border:3px solid var(--line);border-radius:24px;padding:.4rem;overflow:hidden}
+.map{display:block;width:100%;height:auto}
+.map [data-act]{cursor:pointer}
+.map .locked,.map .off{cursor:not-allowed}
+.pl1{font:600 18px Fredoka,sans-serif;fill:#fff}
+.pl2{font:700 13px "Atkinson Hyperlegible",sans-serif;fill:#fff;opacity:.95}
+.hallt{font:600 14px Fredoka,sans-serif;fill:#fff}
+.maplegend{display:flex;gap:1rem;flex-wrap:wrap;padding:.4rem .8rem .5rem;font-size:.85rem;font-weight:700;color:var(--mut)}
+.side{display:grid;gap:.8rem}
+.meter{margin:.45rem 0}
+.meter .row{display:flex;justify-content:space-between;font-weight:700;font-size:.95rem}
+.bar{height:16px;border-radius:99px;background:var(--chip);border:2px solid var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:99px;transition:width .45s}
+.meter small{display:block;color:var(--mut);font-size:.78rem}
+.olist{list-style:none;margin:0;padding:0;display:grid;gap:.35rem;font-size:.95rem}
+.olist li{display:flex;gap:.5rem;align-items:flex-start}
+.olist .cur{background:var(--infbg);border:2px solid var(--inf);border-radius:12px;padding:.4rem .6rem;font-weight:700}
+.badges{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem;text-align:center;font-size:.7rem;font-weight:700}
+.badges .b{border:3px dashed var(--line);border-radius:14px;padding:.35rem .1rem;opacity:.55}
+.badges .b.on{border-style:solid;border-color:#F5B301;opacity:1;background:var(--nobg)}
+.badges .b span{display:block;font-size:1.5rem}
+.upg{display:flex;flex-wrap:wrap;gap:.35rem}
+.upg span{border:2px solid var(--line);border-radius:10px;padding:.15rem .5rem;font-size:.8rem;font-weight:700;opacity:.5}
+.upg span.on{opacity:1;background:var(--okbg);border-color:var(--ok)}
+.news{font-size:.88rem;display:grid;gap:.3rem;color:var(--mut)}
+.score{display:flex;gap:.4rem;flex-wrap:wrap}
+/* district */
+.dband{color:#fff;border-radius:22px;padding:1.2rem 1.5rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.dband .em{font-size:3.4rem}
+.dband h1{font-size:2rem}
+.dband p{margin:.3rem 0 0;max-width:46rem;font-size:1.02rem}
+.mlist{display:grid;gap:.7rem}
+.mrow{display:flex;gap:1rem;align-items:center;border:3px solid var(--line);border-left:10px solid var(--dc);border-radius:18px;background:var(--panel);padding:.8rem 1rem}
+.mrow .ic{font-size:2rem}
+.mrow h3{font-size:1.15rem}
+.tag{display:inline-block;background:var(--chip);border:2px solid var(--line);border-radius:8px;padding:0 .45rem;font-size:.75rem;font-weight:700;margin-left:.3rem}
+.tag.done{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.tag.skip{background:var(--nobg);border-color:var(--no);color:var(--no)}
+/* mission */
+.mhead{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;background:var(--dk);color:#fff;border-radius:20px;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.mhead .btn{color:var(--ink)}
+.mhead h1{font-size:1.6rem}
+.mhead .kick{font-size:.85rem;font-weight:700;opacity:.9}
+.rs{display:flex;gap:.4rem;flex-wrap:wrap;margin-left:auto}
+.rs span{background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.5);border-radius:999px;padding:.1rem .6rem;font-weight:700;font-size:.85rem}
+.mgrid{display:grid;grid-template-columns:19rem minmax(0,1fr);gap:.9rem;align-items:start}
+@media (max-width:900px){.mgrid{grid-template-columns:1fr}}
+.story p{margin:.2rem 0 .7rem}
+.story .obj{border-left:6px solid var(--dc);padding-left:.6rem}
+.hint{background:var(--infbg);border:2px solid var(--inf);color:var(--inf);border-radius:12px;padding:.5rem .7rem;margin-top:.6rem;font-weight:700;font-size:.92rem}
+.safetybox{background:var(--nobg);border:2px solid var(--no);color:var(--no);border-radius:12px;padding:.5rem .7rem;margin:.4rem 0 .7rem;font-size:.88rem;font-weight:700}
+.tctl{margin-top:.8rem;display:flex;gap:.4rem;flex-wrap:wrap}
+body.board .tctl{display:none}
+.stage{min-height:22rem}
+.prog{font-weight:700;color:var(--mut);margin-bottom:.4rem}
+.q{font-size:1.35rem;margin:.1rem 0 .8rem}
+.q2{font-size:1.15rem;margin:1rem 0 .6rem}
+.bonus{font-family:"Atkinson Hyperlegible";font-size:.75rem;background:#FFE08A;color:#4A3500;border-radius:8px;padding:.1rem .45rem;vertical-align:middle}
+.opts{display:grid;gap:.55rem}
+.opt{text-align:left;border:3px solid var(--line);background:var(--panel);border-radius:16px;padding:.8rem 1rem;font-weight:700;min-height:56px}
+.opt:hover:not(:disabled){border-color:var(--btn)}
+.opt.good{background:var(--okbg);border-color:var(--ok)}
+.opt.bad{background:var(--nobg);border-color:var(--no);opacity:.75}
+.fb{margin-top:.9rem;border-radius:18px;padding:0;font-size:1.02rem}
+.fb:not(:empty){padding:.85rem 1.1rem;border:3px solid var(--line);background:var(--panel)}
+.fb.ok{background:var(--okbg);border-color:var(--ok)}
+.fb.no{background:var(--nobg);border-color:var(--no)}
+.fb.info{background:var(--infbg);border-color:var(--inf)}
+.fb .go{margin-top:.6rem}
+.fxrow{margin-top:.5rem;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.fxchip{background:var(--panel);border:2px solid var(--ok);color:var(--ok);border-radius:999px;padding:0 .6rem;font-weight:700;font-size:.85rem}
+.fxwhy{font-size:.88rem;color:var(--mut)}
+.pickbar{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.5rem}
+.coins{background:#FFF2C2;color:#4A3500;border:2px solid #E9C54B;border-radius:999px;padding:.15rem .8rem;font-weight:700}
+.tray{display:flex;gap:.4rem;min-height:3rem;align-items:center;background:var(--chip);border:3px dashed var(--line);border-radius:16px;padding:.3rem .7rem;margin-bottom:.7rem}
+.slot{font-size:1.8rem}
+.foods{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.2rem,1fr));gap:.6rem}
+.food{display:grid;gap:.1rem;justify-items:center;text-align:center;border:3px solid var(--line);background:var(--panel);border-radius:18px;padding:.6rem .4rem;min-height:9rem}
+.food.on{border-color:var(--btn);background:var(--okbg)}
+.food .fe{font-size:2.3rem}
+.food .cost{font-size:.8rem;font-weight:700;color:var(--mut)}
+.food .tg{display:flex;gap:.2rem;flex-wrap:wrap;justify-content:center}
+.food .tg em{font-style:normal;font-size:.68rem;border:2px solid var(--line);border-radius:7px;padding:0 .3rem;color:var(--mut)}
+.food .tg em.m{background:var(--infbg);border-color:var(--inf);color:var(--inf);font-weight:700}
+.note{background:var(--chip);border-radius:12px;padding:.5rem .8rem;margin:.7rem 0;min-height:2.6rem}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media (max-width:700px){.cols{grid-template-columns:1fr}}
+.mi{display:block;width:100%;text-align:left;border:3px solid var(--line);background:var(--panel);border-radius:14px;padding:.6rem .8rem;margin-bottom:.5rem;font-weight:700}
+.mi.sel{border-color:#F5B301;background:#FFF6D6;color:#3b2d00}
+.mi.ok{background:var(--okbg);border-color:var(--ok);color:var(--ok);cursor:default}
+.mi.shake{animation:shake .35s}
+.mi small{display:block;font-weight:400;color:var(--mut)}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.bins{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem}
+.bin{border:3px dashed var(--line);border-radius:16px;background:var(--panel);padding:.6rem;min-height:9rem;text-align:left}
+.bin:hover:not(:disabled){border-color:var(--btn)}
+.bin b{display:block}
+.bin small{display:block;color:var(--mut);margin:.15rem 0 .4rem;font-size:.8rem}
+.bin .pl{display:block;font-size:.85rem;font-weight:700;color:var(--ok)}
+.samples{display:grid;grid-template-columns:repeat(auto-fill,minmax(9rem,1fr));gap:.6rem;margin-bottom:.8rem}
+.smp{border:3px solid var(--line);background:var(--panel);border-radius:16px;padding:.5rem;text-align:center;font-weight:700}
+.smp .fe{font-size:2.2rem;display:block}
+.smp.sel{border-color:#F5B301;background:#FFF6D6;color:#3b2d00}
+.smp.ok{border-color:var(--ok);background:var(--okbg)}
+.card2{background:var(--chip);border-radius:16px;padding:.7rem .9rem;margin-bottom:.6rem}
+.card2 p{margin:.15rem 0}
+.causes{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.5rem}
+.wbars{display:grid;gap:.5rem;margin:.6rem 0}
+.wbars .bar{height:22px}
+.kit{width:100%;height:auto;border-radius:16px;border:3px solid var(--line);display:block}
+.kit [data-act]{cursor:pointer}
+.kpanel{margin-top:.7rem}
+.bmi input{font:inherit;font-weight:700;width:7.5rem;padding:.4rem .6rem;border-radius:10px;border:3px solid var(--line);background:var(--panel);color:var(--ink)}
+.bmi label{font-weight:700;margin-right:.6rem}
+.bmi .res{font-size:1.4rem;font-weight:700;margin:.5rem 0}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1.5rem;align-items:center;min-height:80vh}
+@media (max-width:900px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:3.4rem;letter-spacing:-.01em}
+.hero h2{font-size:1.6rem;margin:.3rem 0 1rem;color:var(--mut)}
+.hero p{max-width:34rem}
+.credit{margin-top:1.4rem;font-size:.85rem;color:var(--mut)}
+.row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+.guide{display:flex;gap:1.2rem;align-items:center}
+.guide .face{font-size:5rem}
+.bubble{background:var(--panel);border:3px solid var(--line);border-radius:22px;padding:1.2rem 1.4rem;font-size:1.15rem;max-width:40rem}
+.cert{text-align:center;border:8px double #E0A800;background:var(--panel);border-radius:24px;padding:1.5rem}
+.cert h1{font-size:2.4rem}
+.ctable{width:100%;border-collapse:collapse;margin:.8rem 0;text-align:left}
+.ctable td{border-bottom:2px solid var(--line);padding:.4rem .5rem;font-weight:700}
+.mback{position:fixed;inset:0;background:rgba(10,25,35,.62);display:grid;place-items:center;z-index:50;padding:1rem;overflow:auto}
+.modal{background:var(--panel);border:4px solid var(--line);border-radius:24px;padding:1.2rem 1.4rem;max-width:34rem;width:100%;max-height:92vh;overflow:auto}
+.modal.wide{max-width:60rem}
+.modal h2{font-size:1.6rem;margin-bottom:.6rem}
+.modal .fld{margin:.8rem 0}
+.modal .fld>b{display:block;margin-bottom:.3rem}
+.seg{display:flex;gap:.4rem;flex-wrap:wrap}
+.seg button{border:3px solid var(--line);background:var(--panel);border-radius:12px;padding:.35rem .8rem;font-weight:700;min-height:44px}
+.seg button.on{border-color:var(--btn);background:var(--okbg);color:var(--ok)}
+.pv{border-top:2px solid var(--line);padding:.5rem 0;font-size:.9rem}
+.pv b{font-size:1rem}
+.pv ul{margin:.2rem 0 0 1.1rem;padding:0}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(1.2rem + env(safe-area-inset-bottom,0px));z-index:60;display:grid;gap:.4rem;pointer-events:none}
+.toast{background:#17324A;color:#fff;border-radius:999px;padding:.45rem 1.1rem;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);animation:tin .25s}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}}
+/* map motion */
+.cloud{animation:drift 40s linear infinite alternate}
+@keyframes drift{to{transform:translateX(220px)}}
+.car1{animation:d1 14s linear infinite}
+.car2{animation:d2 17s linear infinite}
+@keyframes d1{from{transform:translate(270px,170px)}to{transform:translate(730px,430px)}}
+@keyframes d2{from{transform:translate(730px,170px)}to{transform:translate(270px,430px)}}
+.smoke{animation:rise 3s ease-out infinite}
+@keyframes rise{from{opacity:.8;transform:translateY(0)}to{opacity:0;transform:translateY(-22px)}}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+.pulse2{animation:pulse2 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse2{50%{transform:scale(1.18)}}
+.flame{animation:flick .5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes flick{to{transform:scaleY(1.2)}}
+@media (prefers-reduced-motion:reduce){.cloud,.car1,.car2,.smoke,.pulse,.pulse2,.flame,.toast,.mi.shake{animation:none}.bar>i{transition:none}.car1{transform:translate(400px,270px)}.car2{transform:translate(620px,230px)}}
+@media print{.top,.btn,.no-print{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="overlay"></div>
+<div id="toasts" aria-live="polite"></div>
+<script>
+'use strict';
+/* =====================================================
+   BioCity: Build a Healthy World  (Grade 5 Science, Ch.1 Food)
+   Single-file game. No network needed after loading.
+   ===================================================== */
+const KEY='biocity.v1';
+const $=(s,r=document)=>r.querySelector(s);
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ---------------- content ---------------- */
+const DIST=[
+ {id:'nutrition',name:'Nutrition District',e:'🍎',c:'#F28C28',dk:'#9A4607',plate:'#F9DFB0',badge:'Nutrition Architect',blurb:'Food pyramid and balanced diet',story:"The town's new grocery market is opening. The city needs a reliable supply of foods that can contribute to a balanced diet."},
+ {id:'security',name:'Food Security District',e:'🥫',c:'#14A6A0',dk:'#0A6460',plate:'#C2EBE6',badge:'Food Guardian',blurb:'Spoilage and preservation',story:'A food delivery has arrived at the storage centre. Some food needs to be preserved, and one storage area has developed a spoilage problem.'},
+ {id:'wellbeing',name:'Well-being District',e:'🌳',c:'#3E7BDB',dk:'#1F4A96',plate:'#BDE6AE',badge:'Well-being Planner',blurb:'Obesity, diseases and healthy living',story:'The town is planning a community well-being programme. Use science to help people make informed choices about food, activity and disease prevention.'},
+ {id:'safety',name:'Safety District',e:'🧯',c:'#E4493B',dk:'#1B3580',plate:'#CCD8F4',badge:'Safety Inspector',blurb:'Kitchen safety',story:'The community kitchen is about to open, but the safety inspector has found hazards that must be fixed first.'}
+];
+const RES=[
+ {k:'food',n:'Food Security',e:'🌾',c:'#14A6A0',d:'Safe, suitable food for the community'},
+ {k:'health',n:'Health',e:'💚',c:'#4CAF50',d:'Nutrition and healthy-living choices'},
+ {k:'safety',n:'Safety',e:'🛡️',c:'#E4493B',d:'Safe kitchens and hazard prevention'},
+ {k:'well',n:'Community Well-being',e:'☀️',c:'#3E7BDB',d:'Less waste and a thriving community'}
+];
+const RES0={food:70,health:65,safety:80,well:70};
+const UPG=[
+ {id:'garden',n:'Community garden',e:'🥕',at:20},{id:'storage',n:'Improved food storage',e:'🏭',at:60},
+ {id:'market',n:'Better-equipped market',e:'🛒',at:100},{id:'park',n:'Recreation park',e:'⚽',at:140},
+ {id:'kitchen',n:'Safer kitchen',e:'🧑‍🍳',at:180},{id:'deco',n:'Fountain and trees',e:'⛲',at:220}
+];
+const MAINN={carb:'Carbohydrates',protein:'Proteins',fat:'Fats',vm:'Vitamins and minerals'};
+const TAGN={carb:'Carbohydrates',protein:'Proteins',fat:'Fats',vit:'Vitamins',mineral:'Minerals'};
+const FOODS=[
+ {id:'rice',e:'🍚',n:'Rice',main:'carb',t:['carb'],c:2,note:'Rice is rich in carbohydrates, which give the body energy.'},
+ {id:'grains',e:'🌾',n:'Whole grains',main:'carb',t:['carb','vit'],c:2,note:'Whole grains give carbohydrates for energy and some vitamins.'},
+ {id:'potato',e:'🥔',n:'Potatoes',main:'carb',t:['carb'],c:1,note:'Potatoes are a carbohydrate food that gives energy.'},
+ {id:'pulses',e:'🫘',n:'Pulses',main:'protein',t:['protein','mineral'],c:2,note:'Pulses are a good source of proteins, which help the body grow and repair itself. They also give some minerals.'},
+ {id:'milk',e:'🥛',n:'Milk',main:'protein',t:['protein','fat','mineral'],c:2,note:'Milk gives proteins, some fats and minerals. One food can belong to more than one group.'},
+ {id:'eggs',e:'🥚',n:'Eggs',main:'protein',t:['protein','fat','vit'],c:2,note:'Eggs give proteins, some fats and vitamins.'},
+ {id:'nuts',e:'🥜',n:'Nuts',main:'fat',t:['fat','protein','mineral'],c:3,note:'Nuts give fats (a lot of energy in a small amount) and also some proteins and minerals.'},
+ {id:'ghee',e:'🧈',n:'Ghee and oil',main:'fat',t:['fat'],c:2,note:'Ghee and oil are fats. We need them, but only in small amounts.'},
+ {id:'fruit',e:'🍎',n:'Fruits',main:'vm',t:['vit','mineral'],c:2,note:'Fruits give vitamins and minerals that protect the body from deficiency diseases.'},
+ {id:'veg',e:'🥦',n:'Vegetables',main:'vm',t:['vit','mineral'],c:1,note:'Vegetables give vitamins and minerals. Green leafy vegetables are especially useful.'},
+ {id:'sweets',e:'🍬',n:'Sweets',main:'carb',t:['carb'],c:1,lim:true,note:'Sweets mostly give sugar. They are fine as a rare treat in small amounts, but they do not replace healthy foods.'},
+ {id:'chips',e:'🍟',n:'Fried chips',main:'fat',t:['fat','carb'],c:1,lim:true,note:'Fried chips are high in fat. Enjoy only now and then in small amounts.'}
+];
+const food=id=>FOODS.find(f=>f.id===id);
+const DEF=[
+ {n:'Vitamin A',c:'Night blindness',src:'carrots, papaya, milk, eggs and green leafy vegetables'},
+ {n:'Vitamin B',c:'Beriberi',src:'whole grains, pulses, milk and eggs'},
+ {n:'Vitamin C',c:'Scurvy',src:'lemon, orange, amla and guava'},
+ {n:'Vitamin D',c:'Rickets',src:'sunlight, milk, eggs and fish'},
+ {n:'Vitamin E',c:'Weak muscles',src:'nuts, vegetable oils and green leafy vegetables',chk:1},
+ {n:'Vitamin K',c:'Slow blood clotting',src:'green leafy vegetables like spinach',chk:1},
+ {n:'Iodine',c:'Goitre',src:'iodised salt and seafood'},
+ {n:'Iron',c:'Anaemia',src:'green leafy vegetables, pulses and jaggery'}
+];
+const CAUSES=['Air and oxygen','Moisture','Enzymes','Microorganisms','Light','Temperature'];
+const TAGS={
+ 'Nutrient groups':'Students may think every food belongs to just one nutrient group, or that a meal needs only one kind of food.',
+ 'Balanced diet':'Students may think a plate of favourite foods is balanced. A balanced meal needs variety from all the groups.',
+ 'Deficiency diseases':'Students may mix up which vitamin or mineral goes with which condition (for example Vitamin C and Vitamin D).',
+ 'Spoilage causes':'Students may blame only germs. Air, moisture, enzymes, light and temperature also matter.',
+ 'Preservation methods':'Students may think any method works for any food. Each method controls a specific cause of spoilage.',
+ 'Reducing food waste':'Students may focus on cost instead of the conditions that make food spoil.',
+ 'Healthy habits':'Students may link health only to body size. Activity, balanced food and sleep matter for everyone.',
+ 'Disease types':'Students may confuse infectious (spread by microorganisms) with hereditary (passed through genes) diseases.',
+ 'Kitchen hazards':'Students may think a hazard needs to look dramatic. Quiet hazards such as cloth near a flame count too.',
+ 'Safe responses':'Students may want to fix dangers themselves. The safe move is to get away and alert a responsible adult.'
+};
+
+/* mission builders */
+const st=(q,o,ok,why,hint,more)=>Object.assign({q,o:o.map(x=>x[0]),w:o.map(x=>x[1]||''),ok,why,hint},more||{});
+const rs=(q,o,ok,why)=>({q,o:o.map(x=>x[0]),w:o.map(x=>x[1]||''),ok,why});
+
+const SAMPLES=[
+ {e:'🍞',n:'Bread',store:'Open bag in a warm, damp cupboard',time:'6 days',seen:'Fuzzy green-white patches on the slices',ok:3,why:'Moulds are microorganisms. They grow well on food kept warm and damp.',tip:'Store bread in a clean, dry place and use it before it gets old.'},
+ {e:'🌾',n:'Wheat',store:'Sack on the floor under a leaking roof',time:'2 weeks',seen:'Grains are damp and clumped, with tiny sprouts',ok:1,why:'Water in the grain is moisture. Wet grain spoils quickly, so grain must be dried and kept dry.',tip:'Dry the grain and store it in a dry place.'},
+ {e:'🍏',n:'Cut apple',store:'On a plate, cut and left out',time:'1 hour',seen:'Cut surface turned brown. No fuzzy patches.',ok:2,why:'Enzymes in the fruit cause the cut surface to turn brown.',tip:'Eat cut fruit soon, or keep it cold.'},
+ {e:'🍟',n:'Chips',store:'Packet left open on the shelf',time:'3 weeks',seen:'Chips feel soft and limp',ok:0,why:'Air and oxygen reach the food when the packet is open, so it spoils faster.',tip:'Seal packets tightly after opening.'},
+ {e:'🥛',n:'Milk',store:'Jug on the counter on a hot day',time:'1 day',seen:'Jug feels warm. A label says "keep cool".',ok:5,why:'A warm temperature helps spoilage happen fast. Cool temperatures slow it down.',tip:'Boil milk and keep it cool or in a fridge.'},
+ {e:'🫙',n:'Cooking oil',store:'Clear bottle on a sunny windowsill',time:'2 months',seen:'Colour has changed compared with a new bottle',ok:4,why:'Strong light can change some foods and spoil them. Keep such food in a dark place.',tip:'Store oil in a dark, cool cupboard.'}
+];
+const PRES=[
+ {l:'🌾 Wheat grains for storage',r:'Drying',why:'Drying removes moisture, so grains keep longer.'},
+ {l:'🟢 Green peas for the winter',r:'Freezing',why:'Very low temperature slows spoilage.'},
+ {l:'🥛 Fresh milk',r:'Boiling (heat)',why:'Heating kills many microorganisms in milk.'},
+ {l:'🍋 Lemon pickle',r:'Adding salt',why:'Salt draws out water and helps keep microorganisms away.'},
+ {l:'🍓 Fruit jam',r:'Adding sugar',why:'A lot of sugar helps keep jam from spoiling.'},
+ {l:'🥫 Food for long shelf-stable storage',r:'Canning',why:'Food is heated and sealed in airtight containers (cans or jars).'},
+ {l:'🍅 Packaged tomato sauce',r:'Chemical preservatives',why:'Small, permitted amounts of preservatives slow spoilage.'},
+ {l:'🧅 Onions and spices stored for long periods',r:'Irradiation',why:'Treating food with radiation can reduce spoilage organisms and sprouting.'}
+];
+const DISEASES=[
+ {t:'Cholera',s:'A family drinks dirty water. Microorganisms make many of them ill and it spreads from person to person.',bin:'inf'},
+ {t:'Tuberculosis (TB)',s:'Bacteria spread through the air when an infected person coughs.',bin:'inf'},
+ {t:'Colour blindness',s:'Several people in one family cannot tell some colours apart. It is passed from parents to children.',bin:'her'},
+ {t:'Haemophilia',s:'Blood clots slowly. It runs in the family through genes.',bin:'her'},
+ {t:'Diabetes',s:'The body cannot control the sugar level in the blood because an organ is not working properly.',bin:'phy'},
+ {t:'High blood pressure',s:'The heart and blood vessels are not working normally, so blood pressure stays too high.',bin:'phy'},
+ {t:'Rickets',s:'Bones become soft and bent because the diet lacks Vitamin D.',bin:'def'},
+ {t:'Anaemia',s:'A child feels tired and pale because the diet lacks iron.',bin:'def'}
+];
+const BINS=[
+ {id:'inf',n:'Infectious',def:'caused by microorganisms and can spread from person to person'},
+ {id:'her',n:'Hereditary',def:'passed from parents to children through genes'},
+ {id:'phy',n:'Physiological',def:'caused when body organs or systems do not work properly'},
+ {id:'def',n:'Deficiency',def:'caused by a lack of nutrients in the diet'}
+];
+const ALLOC=[
+ {id:'a',e:'❄️',n:'Cold room for milk, fruit and vegetables',red:20,why:'Low temperature slows the growth of microorganisms.'},
+ {id:'b',e:'🌾',n:'Dry, airtight bins for grains',red:20,why:'Dry grain has little moisture and sealed bins keep out air and moisture.'},
+ {id:'c',e:'☀️',n:'Big glass walls so storage rooms get full sunshine',red:0,why:'Sunlight and heat make spoilage faster, so this does not reduce waste.'},
+ {id:'d',e:'📅',n:'Check dates and use older stock first',red:10,why:'Older food is used before it spoils, so less is thrown away.'},
+ {id:'e',e:'🫙',n:'A jam-and-pickle kitchen for extra fruit and vegetables',red:10,why:'Sugar and salt help preserve extra fruit and vegetables.'}
+];
+const PARK=[
+ {id:'track',e:'🏃',n:'Walking and jogging track',c:3,ok:1,note:'A track makes walking and running easy for all ages.'},
+ {id:'play',e:'🛝',n:'Playground',c:3,ok:1,note:'Playgrounds help children stay active while having fun.'},
+ {id:'sport',e:'⚽',n:'Sports ground',c:4,ok:1,note:'Team games build fitness and friendships.'},
+ {id:'lawn',e:'🧘',n:'Open lawn for yoga and games',c:2,ok:1,note:'An open space is useful for many kinds of activity.'},
+ {id:'garden',e:'🥬',n:'Community vegetable garden',c:3,ok:1,note:'Growing vegetables means activity and fresh vitamins-and-minerals foods.'},
+ {id:'edu',e:'📚',n:'Health-education centre',c:3,ok:1,note:'Teaches about balanced food, sleep and staying active.'},
+ {id:'stall',e:'🍭',n:'Sweets and chips stall',c:2,ok:0,note:'Mostly sugary and fatty snacks, which do not help health if eaten often.'},
+ {id:'tv',e:'🛋️',n:'Giant sofa-and-TV lounge',c:2,ok:0,note:'Long sitting does not give the body the activity it needs.'}
+];
+
+const KOBJ=[
+ {id:'cyl',n:'Gas cylinder',hz:1,desc:'The hose looks cracked. There is a hissing sound and a strong gas smell near the cylinder.',why:'A gas leak is a critical hazard: gas can catch fire if it meets a spark or flame.',ok:2,fix:[['Switch on the exhaust fan to blow the gas out','Switches can make a tiny spark, and leaking gas can catch fire from a spark.'],['Light a match to find the leak','Never use a flame near a leak. The gas can catch fire.'],['Do not touch switches or flames. Move away and tell a responsible adult or call emergency services','Moving away and alerting an adult keeps you safe. Adults and professionals can deal with the leak.']]},
+ {id:'pot',n:'Pan on the stove',hz:1,desc:'A pan of oil is heating on a lit burner. Nobody is in the kitchen.',why:'Cooking left unattended is a fire hazard. Hot oil can overheat and catch fire.',ok:2,fix:[['Leave it. The food will cook by itself','Cooking should never be left unattended. Oil can catch fire.'],['Lift the hot pan yourself and carry it away','Hot pans and oil can burn badly. Let an adult handle it.'],['Tell an adult at once so the flame is switched off and the pan is watched','An adult can switch off the flame safely. Cooking must always be watched.']]},
+ {id:'cur',n:'Curtain by the stove',hz:1,desc:'A cotton curtain hangs right beside the lit stove.',why:'Cloth, paper and oil are inflammable: they catch fire easily when close to a flame.',ok:2,fix:[['Tie the curtain in a knot near the stove','It would still be close to the flame. Inflammable things must be kept away.'],['Leave it. Cloth is not dangerous','Cloth catches fire easily when it is near a flame.'],['Ask an adult to move it well away from the stove and keep inflammable things away from flames','Keeping inflammable things away from flames stops fires before they start.']]},
+ {id:'mix',n:'Electric mixer',hz:1,desc:'A plugged-in mixer sits on a wet countertop next to the sink.',why:'Water can carry electricity. Wet surfaces or wet hands near plugged-in appliances can cause an electric shock.',ok:2,fix:[['Wipe the counter with a wet cloth while the mixer is plugged in','More water makes it more dangerous.'],['Pull out the plug with wet hands','Never touch plugs or switches with wet hands. You could get an electric shock.'],['Keep away and tell an adult to switch off the power with dry hands and dry the counter','An adult with dry hands can switch off the power and make the area safe.']]},
+ {id:'win',n:'Window',hz:0,desc:'The window is open so fresh air can come in.',why:'Good ventilation lets smoke, heat and fumes leave the kitchen. This is safe.'},
+ {id:'ext',n:'Fire extinguisher',hz:0,desc:'A fire extinguisher hangs on the wall near the door, easy to reach.',why:'A visible extinguisher is a safety feature. Only trained adults should use it. Children should move away and alert adults.'},
+ {id:'aid',n:'First-aid kit',hz:0,desc:'A box with bandages and antiseptic is clearly marked and easy to find.',why:'This is safe. A clear, easy-to-find kit helps adults treat minor injuries quickly.'}
+];
+
+const MISSIONS=[
+ {id:'n1',d:'nutrition',tier:3,type:'shelf',title:'Stock the Market',tag:'Nutrient groups',
+  scn:'The new market has empty shelves and 12 coins to spend. Foods can belong to more than one group.',
+  obj:'Stock at least 5 foods so the market gives the community all four main kinds of food: carbohydrates, proteins, fats, and vitamins and minerals.',
+  hint:'Look for an energy food, a body-building food, a fat source, and a fruit or vegetable. Tap a card to read about it.',
+  fx:{food:5,health:3},fxWhy:'A well-stocked market gives people steady access to varied food.',
+  pick:{budget:12,cap:0,items:FOODS,submit:'Open the market',eval:'shelf'}},
+ {id:'n2',d:'nutrition',tier:1,type:'tray',title:'Build a Balanced Meal',tag:'Balanced diet',
+  scn:'The school canteen opens tomorrow. Fill one tray (up to 5 foods) for a hungry class.',
+  obj:'Build a tray with variety. Many different trays can be right.',
+  hint:'A balanced meal needs an energy food, a protein food and a fruit or vegetable. Fats are needed in small amounts.',
+  fx:{health:8},fxWhy:'A varied, balanced meal supports healthy growth in the community.',
+  pick:{budget:null,cap:5,items:FOODS,submit:'Serve the meal',eval:'tray'}},
+ {id:'n3',d:'nutrition',tier:2,type:'decide',title:'Deficiency Investigation',tag:'Deficiency diseases',
+  scn:'The community health worker shares notes on three fictional cases. This is classroom learning, not a medical diagnosis.',
+  obj:'Match each condition to the missing vitamin or mineral, then pick foods that can help.',
+  hint:'Use the chapter table: each condition is linked to one vitamin or mineral.',
+  fx:{health:4,well:2},fxWhy:'Knowing which nutrients we need helps the community plan better meals.',
+  steps:[
+   st('Meena finds it hard to see in dim light after sunset. Her notes say <b>night blindness</b>. Which nutrient is missing?',[['Vitamin A','Vitamin A is linked to night blindness.'],['Vitamin C','Vitamin C is linked to scurvy.'],['Vitamin D','Vitamin D is linked to rickets.'],['Iron','Iron is linked to anaemia.']],0,'Night blindness is linked to a lack of Vitamin A.','Think of carrots.',{fx:{health:2},fxWhy:'You matched the right nutrient.',reason:rs('Which foods could help the community get this nutrient?',[['Carrots, papaya, eggs and green leafy vegetables','These are good sources of Vitamin A.'],['Only sweets and fried chips','They are not good sources of Vitamin A.'],['Only plain white rice','Rice mainly gives carbohydrates for energy.']],0,'Carrots, papaya, eggs and green leafy vegetables give Vitamin A.')}),
+   st('Arjun has bleeding gums and cuts that heal slowly. His notes say <b>scurvy</b>. Which nutrient is missing?',[['Vitamin B','Vitamin B is linked to beriberi.'],['Vitamin C','Right match.'],['Iodine','Iodine is linked to goitre.'],['Vitamin K','Vitamin K is linked to slow blood clotting.']],1,'Scurvy is linked to a lack of Vitamin C.','It is found in sour fruits.',{fx:{health:2},fxWhy:'You matched the right nutrient.',reason:rs('Which foods could help?',[['Rice and wheat flour','These mainly give carbohydrates.'],['Lemon, orange, amla and guava','These are good sources of Vitamin C.'],['Salt and sugar','These are not sources of Vitamin C.']],1,'Citrus fruits, amla and guava give Vitamin C.')}),
+   st('Many people in a hill village have a swelling in the neck. The notes say <b>goitre</b>. Which mineral is missing?',[['Iron','Iron is linked to anaemia.'],['Vitamin A','Vitamin A is linked to night blindness.'],['Iodine','Right match.'],['Vitamin D','Vitamin D is linked to rickets.']],2,'Goitre is linked to a lack of iodine.','It is added to table salt.',{fx:{health:2},fxWhy:'You matched the right nutrient.',reason:rs('What simple change can help?',[['Eating more sugar','Sugar is not a source of iodine.'],['Using iodised salt','Iodised salt gives iodine.'],['Eating more fried snacks','These do not give iodine.']],1,'Iodised salt and seafood give iodine.')})
+  ]},
+ {id:'f1',d:'security',tier:2,type:'inspect',title:'Inspect the Food',tag:'Spoilage causes',
+  scn:'The storage centre has six food samples with storage cards. Look for clues on each card.',
+  obj:'Match each sample to the most likely cause of spoilage.',
+  hint:'Read how the food was stored, for how long, and what changed.',
+  fx:{food:5},fxWhy:'Knowing why food spoils helps the city protect its food.',samples:SAMPLES},
+ {id:'f2',d:'security',tier:1,type:'match',title:'Choose the Preservation Method',tag:'Preservation methods',
+  scn:'The storage centre needs to preserve eight kinds of food for the next season.',
+  obj:'Tap a food, then tap the method that suits it.',
+  hint:'Ask: which cause of spoilage does this method control?',
+  fx:{food:8,well:3},fxWhy:'Suitable preservation keeps food safe for longer and reduces waste.',
+  pairs:PRES,wrong:'Think about what the method does to the food.'},
+ {id:'f3',d:'security',tier:3,type:'alloc',title:'Rescue the Food Supply',tag:'Reducing food waste',
+  scn:'The food-waste indicator is rising. You can afford only <b>two</b> improvements to the storage centre.',
+  obj:'Choose two upgrades that bring the waste indicator down to 30 or lower.',
+  hint:'Choose changes that control temperature, moisture or air. Sunshine and heat do not help food last.',
+  fx:{food:5,well:7},fxWhy:'Less spoiled food means less waste and a healthier city.',
+  reason:rs('Why do the best upgrades reduce waste?',[['They control conditions that cause spoilage, such as temperature, moisture and air','Correct: that is why they work.'],['They make the food taste sweeter','Taste is not the reason.'],['They stop people from eating the food','Food is meant to be eaten, not avoided.']],0,'Controlling the conditions that cause spoilage keeps food usable for longer.')},
+ {id:'w1',d:'wellbeing',tier:2,type:'park',title:'Improve the Community Park',tag:'Healthy habits',
+  scn:'The town has 10 coins for the new park. Everyone, of every shape and size, deserves a healthy community.',
+  obj:'Choose at least 3 facilities that support physical activity and healthy habits. Avoid facilities that do not.',
+  hint:'Pick places to move, play, learn or grow food. Skip the ones that only encourage sitting or snacking.',
+  fx:{well:8,health:4},fxWhy:'Active spaces and good information help everyone stay healthy.',
+  pick:{budget:10,cap:0,items:PARK,submit:'Open the park',eval:'park'},
+  reason:rs('How do park facilities help community health?',[['Regular activity, balanced food and enough sleep help everyone feel well','Correct.'],['Only some people need to be active','Everyone benefits from being active, whatever their body size.'],['Parks make food last longer','Parks do not preserve food.']],0,'Physical activity, balanced food and enough sleep all support well-being.')},
+ {id:'w2',d:'wellbeing',tier:1,type:'sort',title:'Solve the Health Cases',tag:'Disease types',
+  scn:'The health centre has eight fictional case cards. Sort each into the right group of diseases.',
+  obj:'Tap a case, then tap its disease group (or drag it).',
+  hint:'Look for clue words: microorganisms, passed in the family, organs not working, lack of a nutrient.',
+  fx:{health:6,well:4},fxWhy:'Knowing the kind of disease helps the community prevent it.',
+  items:DISEASES,bins:BINS},
+ {id:'w3',d:'wellbeing',tier:3,type:'match',title:'Match the Deficiency',tag:'Deficiency diseases',
+  scn:'A refresher on vitamin and mineral deficiencies for the community health programme.',
+  obj:'Match each condition with the vitamin or mineral that is lacking.',
+  hint:'Use your chapter table.',
+  fx:{health:6},fxWhy:'The community knows what to eat to avoid these conditions.',
+  pairs:DEF.map(d=>({l:d.c,r:d.n,why:'<b>'+d.c+'</b> is linked to a lack of <b>'+d.n+'</b>. Good sources: '+d.src+'.'})),wrong:'Check which vitamin or mineral is linked to that condition in the table.'},
+ {id:'w4',d:'wellbeing',tier:3,optional:1,type:'bmi',title:'Optional: BMI Learning Station',tag:'Healthy habits',
+  scn:'BMI is weight in kilograms divided by height in metres squared. This station uses made-up adult numbers only.',
+  obj:'Try the calculator, then solve two practice sums. Optional.',
+  hint:'Square the height first: height × height.',fx:{well:2},fxWhy:'Practising the formula builds maths and science skills.'},
+ {id:'s1',d:'safety',tier:2,type:'kitchen',mode:'inspect',title:'Inspect the Kitchen',tag:'Kitchen hazards',safety:1,
+  scn:'The inspector hands you a clipboard. Tap each object in the kitchen and decide if it is safe or a hazard.',
+  obj:'Sort all 7 objects correctly.',
+  hint:'Look for gas, flames, cloth, water and electricity close together.',
+  fx:{safety:4},fxWhy:'Spotting hazards is the first step to preventing accidents.'},
+ {id:'s2',d:'safety',tier:3,type:'decide',title:'Respond to Hazards',tag:'Safe responses',safety:1,
+  scn:'Four fictional emergencies. Think about the safest response for a child.',
+  obj:'Choose the safest action for each situation.',
+  hint:'Move away from danger and get a responsible adult.',
+  fx:{safety:6},fxWhy:'Safe responses keep people from getting hurt.',
+  steps:[
+   st('You smell gas in the kitchen and hear a hissing from the cylinder. What should you do?',[['Switch on the exhaust fan to clear the gas','Switches can create a spark. Gas can catch fire.'],['Do not touch switches or flames. Move away and tell a responsible adult or call emergency services','Right.'],['Light a match to look for the leak','A flame could ignite the gas.'],['Pick up the cylinder and carry it outside','Only adults or professionals should handle a leaking cylinder.']],1,'Move away, avoid sparks and flames, and alert a responsible adult.','No flames and no switches.',{fx:{safety:2},fxWhy:'Safe response to a gas leak.',reason:rs('Why must we avoid switches and flames?',[['A tiny spark can ignite leaking gas','Correct.'],['Switches use too much power','That is not the reason.'],['Gas makes switches stop working','No, the danger is fire.']],0,'A tiny spark can ignite leaking gas.')}),
+   st('Oil in a pan on the stove catches fire and the flames are growing. What should you do?',[['Pour water on it','Water on burning oil can make flames spread.'],['Carry the pan to the sink','Moving a burning pan can burn you badly.'],['Move away, shout to alert adults and call emergency services','Right.'],['Hide and tell no one','Telling an adult quickly is very important.']],2,'Keep away from a serious fire, alert adults and call for help.','Do not fight a serious fire.',{fx:{safety:2},fxWhy:'Safe response to a fire.',reason:rs('Why leave a serious fire to adults and firefighters?',[['Serious fires spread fast and adults and firefighters have training and equipment','Correct.'],['Fires are always small','Fires can grow very quickly.'],['Children are not allowed in kitchens','The reason is safety, not rules.']],0,'Serious fires spread fast and can hurt people. Trained adults and firefighters have the equipment.')}),
+   st('Sara touches a hot pan handle and her finger turns red and stings. It looks like a small, minor burn. What first?',[['Put butter or toothpaste on it','These can trap heat and cause trouble.'],['Hold it under cool running water for several minutes and tell an adult','Right.'],['Ignore it','Burns need care and an adult should know.'],['Use ice for a long time','Very cold ice can harm the skin.']],1,'Cool running water helps a minor burn. Tell an adult.','Cool water, not ice.',{fx:{safety:2},fxWhy:'Correct first aid learning.',reason:rs('When do you need an adult and medical help straight away?',[['When the burn is large, deep, blistered, on the face, or very painful','Correct.'],['Only when it is a tiny red spot','Tiny minor burns can be treated with cool water.'],['Never. Burns heal alone','Serious burns need medical care.']],0,'Serious burns need an adult and medical care at once.')}),
+   st('A kitchen appliance gives a small shock. Its cord is frayed and the counter is wet. What should you do?',[['Pull out the cord with wet hands','Wet hands and electricity are dangerous.'],['Keep away and tell an adult to switch off the power and check it','Right.'],['Wipe it with a wet cloth','More water means more danger.'],['Keep using it carefully','A damaged appliance should not be used.']],1,'Keep away and tell an adult to switch off the power.','Water and electricity do not mix.',{fx:{safety:2},fxWhy:'Safe response to an electrical hazard.',reason:rs('Why is water dangerous near electricity?',[['Water can let electric current pass through the body','Correct.'],['Water makes appliances heavier','That is not the reason.'],['Water cools the wires','No, the danger is shock.']],0,'Water lets electricity pass, so wet hands or surfaces can cause an electric shock.')})
+  ]},
+ {id:'s3',d:'safety',tier:1,type:'kitchen',mode:'fix',title:'Pass the Inspection',tag:'Kitchen hazards',safety:1,
+  scn:'Four critical hazards are still active. The kitchen cannot open until every one is dealt with.',
+  obj:'Tap each flashing hazard and pick the safe action. The kitchen passes when all four are resolved.',
+  hint:'Safe actions: keep away from danger, tell an adult, no wet hands near electricity.',
+  fx:{safety:12,well:3},fxWhy:'A safe kitchen protects the whole community.'}
+];
+
+const FINAL=[
+ {id:'z1',type:'tray',tag:'Balanced diet',title:'Challenge 1: The Feast Tray',scn:'A big community event is about to begin. Fill the feast tray (up to 4 foods).',obj:'Make a balanced tray with variety.',hint:'Include an energy food, a protein food and a fruit or vegetable.',pick:{budget:null,cap:4,items:FOODS,submit:'Serve the tray',eval:'tray'}},
+ {id:'z2',type:'decide',tag:'Spoilage causes',title:'Challenge 2: The Spoilage Mystery',scn:'Some rice in the event kitchen has gone bad.',obj:'Find the cause.',hint:'Warm and damp.',steps:[
+   st('Rice stored in a warm, damp cupboard has fuzzy patches. What most likely caused this spoilage?',[['Microorganisms such as moulds growing in warm, damp conditions','Right.'],['Very low temperature','Low temperature slows spoilage.'],['Too little moisture','Dry food spoils more slowly.'],['Moonlight','Light does not cause fuzzy patches.']],0,'Microorganisms grow well in warm, damp conditions.','Think of mould.')]},
+ {id:'z3',type:'decide',tag:'Preservation methods',title:'Challenge 3: Keep It Fresh',scn:'A farmer has more green peas than the market can sell.',obj:'Choose a suitable method.',hint:'Think of very low temperature.',steps:[
+   st('How can the extra green peas be kept for months?',[['Freeze them','Right.'],['Leave them in a sunny, warm window','Warm sunshine speeds spoilage.'],['Keep them wet in a bucket','Moisture helps spoilage.']],0,'Freezing slows spoilage so peas keep for months.','Cold keeps food longer.')]},
+ {id:'z4',type:'match',tag:'Deficiency diseases',title:'Challenge 4: The Health Worker',scn:'Three cases at the event health desk.',obj:'Match each condition to the missing nutrient.',hint:'Use the chapter table.',pairs:[DEF[1],DEF[3],DEF[7]].map(d=>({l:d.c,r:d.n,why:'<b>'+d.c+'</b> is linked to a lack of <b>'+d.n+'</b>.'})),wrong:'Check the table of vitamins and minerals.'},
+ {id:'z5',type:'sort',tag:'Disease types',title:'Challenge 5: Classify the Cases',scn:'Four fictional case cards.',obj:'Sort each case.',hint:'Look for clue words.',items:[DISEASES[0],DISEASES[2],DISEASES[4],DISEASES[6]],bins:BINS},
+ {id:'z6',type:'decide',tag:'Healthy habits',title:'Challenge 6: A Healthy Plan',scn:'The city needs a plan for a healthy community.',obj:'Choose the best plan.',hint:'Think about what supports everyone.',steps:[
+   st('Which plan best supports a healthy community?',[['Balanced meals, regular activity, enough sleep and safe food storage','Right.'],['Only eating favourite sweets','This misses many nutrients.'],['Skipping meals to save food','The body needs regular, balanced food.']],0,'Balanced food, activity, sleep and safe storage all matter.','Think of the whole city.')]},
+ {id:'z7',type:'decide',tag:'Safe responses',title:'Challenge 7: Kitchen Safety',scn:'In the event kitchen, a pan of oil catches fire.',obj:'Choose the safest response.',hint:'Do not fight a serious fire.',steps:[
+   st('What should a child do?',[['Throw water on the pan','Water can spread burning oil.'],['Move away, alert adults and call emergency services','Right.'],['Carry the pan outside','Carrying a burning pan is dangerous.']],1,'Move away, alert adults and call emergency services.','Stay safe first.')]}
+];
+
+/* ---------------- state ---------------- */
+const newGame=()=>({res:{...RES0},points:0,teamPts:[],turn:0,done:{},badges:{},review:{},finalDone:false,finalRes:{},skips:[],news:[],seenIntro:false});
+const newSet=()=>({mode:'full',district:'nutrition',length:30,play:'whole',teams:3,points:true,board:false});
+let G=newGame(),S=newSet(),UI={screen:'welcome',d:null,ip:0,fi:0};
+let RT={m:null,h:null,rs:null,done:null,earned:0,fx:{},wrong:0,replay:false,final:false};
+function save(){try{localStorage.setItem(KEY,JSON.stringify({G,S}))}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);G=Object.assign(newGame(),o.G);S=Object.assign(newSet(),o.S);}}catch(e){}}
+const tier=()=>S.length===10?1:S.length===20?2:3;
+const dist=id=>DIST.find(d=>d.id===id);
+const mis=id=>MISSIONS.find(m=>m.id===id);
+const listM=id=>MISSIONS.filter(m=>m.d===id&&m.tier<=tier());
+const reqM=id=>listM(id).filter(m=>!m.optional);
+const prog=id=>{const r=reqM(id);return{done:r.filter(m=>G.done[m.id]).length,total:r.length}};
+const has=id=>G.points>=UPG.find(u=>u.id===id).at;
+const level=()=>1+Object.keys(G.badges).length+(G.finalDone?1:0);
+function dState(i){const d=DIST[i];if(G.badges[d.id])return'done';if(S.mode==='single')return d.id===S.district?'open':'off';return(i===0||G.badges[DIST[i-1].id])?'open':'locked';}
+function curObj(){for(let i=0;i<DIST.length;i++){const s=dState(i);if(s==='open'){const m=reqM(DIST[i].id).find(m=>!G.done[m.id]);if(m)return{m,d:DIST[i]};}}
+ if(S.mode==='full'&&DIST.every(d=>G.badges[d.id])&&!G.finalDone)return{m:{title:'Healthy City Certification'},d:null,fin:true};return null;}
+const teamName=()=>S.play==='team'?'Team '+(G.turn%S.teams+1):S.play==='individual'?'Player':'Class';
+function ensureTeams(){if(G.teamPts.length!==S.teams)G.teamPts=Array.from({length:S.teams},(_,i)=>G.teamPts[i]||0);}
+function news(t){G.news.unshift(t);G.news=G.news.slice(0,6);}
+
+/* ---------------- helpers ---------------- */
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;$('#toasts').appendChild(e);setTimeout(()=>e.remove(),2600);}
+function fb(kind,html){const e=$('#fb');if(!e)return;e.className='fb '+(kind||'');e.innerHTML=html||'';if(html&&e.scrollIntoView)e.scrollIntoView({block:'nearest'});}
+function award(n,label){if(!n||RT.replay)return;G.points+=n;ensureTeams();if(S.play==='team')G.teamPts[G.turn%S.teams]+=n;RT.earned+=n;if(S.points)toast('+'+n+' science points'+(label?' – '+label:''));chips();save();}
+function bad(tag){tag=tag||(RT.m&&RT.m.tag);if(tag)G.review[tag]=(G.review[tag]||0)+1;RT.wrong++;save();}
+function applyFx(fx,why){if(!fx||RT.replay)return'';let out='';for(const r of RES){const v=fx[r.k];if(!v)continue;const o=G.res[r.k];const n=clamp(o+v);G.res[r.k]=n;const dl=n-o;RT.fx[r.k]=(RT.fx[r.k]||0)+dl;if(dl)out+='<span class="fxchip">'+r.e+' '+r.n+' '+(dl>0?'+':'')+dl+'</span>';}
+ if(out){news(RES.filter(r=>fx[r.k]).map(r=>r.n+' '+(fx[r.k]>0?'+':'')+fx[r.k]).join(', ')+(why?' – '+why:''));}save();return out?'<div class="fxrow">'+out+'<span class="fxwhy">'+(why||'')+'</span></div>':'';}
+function chips(){const p=$('#ptsChip');if(p)p.textContent='⭐ '+G.points;const t=$('#teamChip');if(t)t.textContent='👥 '+teamName()+(S.play==='team'&&S.points?' ('+(G.teamPts[G.turn%S.teams]||0)+')':'');}
+const finBtn=()=>'<div><button class="btn go" data-act="st" data-k="fin">'+(RT.final?(UI.fi===FINAL.length-1?'Finish and get the certificate ✔':'Next challenge →'):'Finish mission ✔')+'</button></div>';
+function modal(html,wide,sticky){$('#overlay').innerHTML='<div class="mback" data-close="'+(sticky?0:1)+'"><div class="modal'+(wide?' wide':'')+'" role="dialog" aria-modal="true">'+html+'</div></div>';const b=$('#overlay .modal button');if(b)b.focus();}
+function closeModal(){$('#overlay').innerHTML='';}
+function askBox(msg,yesAct){modal('<h2>Are you sure?</h2><p>'+msg+'</p><div class="row"><button class="btn" data-act="close">Cancel</button><button class="btn go" data-act="'+yesAct+'">Yes, do it</button></div>');}
+
+/* ---------------- isometric drawing ---------------- */
+function shade(hex,p){const n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;const f=c=>Math.round(p<0?c*(1+p):c+(255-c)*p);return'#'+[f(r),f(g),f(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+const pts=P=>P.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
+function blk(cx,cy,sw,h,col,o){o=o||{};const a=sw/2,b=sw/4;
+ const T=[[cx,cy-b-h],[cx+a,cy-h],[cx,cy+b-h],[cx-a,cy-h]],L=[[cx-a,cy-h],[cx,cy+b-h],[cx,cy+b],[cx-a,cy]],R=[[cx+a,cy-h],[cx,cy+b-h],[cx,cy+b],[cx+a,cy]];
+ return'<polygon points="'+pts(L)+'" fill="'+shade(col,-.12)+'"/><polygon points="'+pts(R)+'" fill="'+shade(col,-.3)+'"/><polygon points="'+pts(T)+'" fill="'+(o.top||shade(col,.22))+'"/>';}
+function face(side,cx,cy,sw,h,u1,u2,v1,v2,fill){const a=sw/2,b=sw/4;const P=(u,v)=>side==='L'?[cx-a+u*a,cy+u*b-v*h]:[cx+a-u*a,cy+u*b-v*h];return'<polygon points="'+pts([P(u1,v1),P(u2,v1),P(u2,v2),P(u1,v2)])+'" fill="'+fill+'"/>';}
+const tree=(x,y,s)=>{s=s||1;return'<g><rect x="'+(x-3*s)+'" y="'+(y-14*s)+'" width="'+6*s+'" height="'+14*s+'" fill="#7A5230"/><ellipse cx="'+x+'" cy="'+(y-26*s)+'" rx="'+(15*s)+'" ry="'+(16*s)+'" fill="#2E9B4E"/><ellipse cx="'+(x-4*s)+'" cy="'+(y-30*s)+'" rx="'+(8*s)+'" ry="'+(8*s)+'" fill="#47B866"/></g>';};
+const silo=(x,y,r,h,col)=>'<g><ellipse cx="'+x+'" cy="'+y+'" rx="'+r+'" ry="'+r/2+'" fill="'+shade(col,-.25)+'"/><rect x="'+(x-r)+'" y="'+(y-h)+'" width="'+2*r+'" height="'+h+'" fill="'+col+'"/><ellipse cx="'+x+'" cy="'+(y-h)+'" rx="'+r+'" ry="'+r/2+'" fill="'+shade(col,.3)+'"/></g>';
+const dia=(cx,cy,hw,hh,fill,extra)=>'<polygon points="'+cx+','+(cy-hh)+' '+(cx+hw)+','+cy+' '+cx+','+(cy+hh)+' '+(cx-hw)+','+cy+'" fill="'+fill+'" '+(extra||'')+'/>';
+
+function plaque(cx,cy,d,state,pr){const off=state==='locked'||state==='off';const col=off?'#6F7C86':d.dk;
+ const lab=state==='done'?'★ Badge earned':state==='locked'?'🔒 Locked':state==='off'?'Not in this session':pr.done+' of '+pr.total+' missions';
+ return'<g><rect x="'+(cx-98)+'" y="'+(cy-24)+'" width="196" height="48" rx="14" fill="'+col+'" stroke="#fff" stroke-width="3"/><text x="'+cx+'" y="'+(cy-3)+'" text-anchor="middle" class="pl1">'+d.e+' '+d.name.replace(' District','')+'</text><text x="'+cx+'" y="'+(cy+15)+'" text-anchor="middle" class="pl2">'+lab+'</text></g>';}
+
+function cityMap(preview){
+ const stt=DIST.map((d,i)=>preview?'open':dState(i));const nxt=preview?-1:stt.findIndex(s=>s==='open');
+ const ga=(d,i)=>preview?'':'data-act="dist" data-v="'+d.id+'" role="button" tabindex="0" aria-label="'+d.name+' – '+(stt[i]==='locked'?'locked':stt[i]==='off'?'not in this session':stt[i]==='done'?'completed':'open')+'"';
+ let s='<svg viewBox="0 0 1000 610" class="map" role="img" aria-label="Isometric map of BioCity with four districts and City Hall"><defs><clipPath id="gc"><polygon points="500,40 960,300 500,560 40,300"/></clipPath></defs>';
+ s+='<g class="cloud"><ellipse cx="120" cy="70" rx="52" ry="16" fill="#fff" opacity=".85"/><ellipse cx="155" cy="60" rx="32" ry="14" fill="#fff" opacity=".85"/></g>';
+ s+='<polygon points="40,300 500,560 500,592 40,332" fill="#7B5A38"/><polygon points="960,300 500,560 500,592 960,332" fill="#5C4126"/><polygon points="500,40 960,300 500,560 40,300" fill="#7CCB6B"/>';
+ s+='<g clip-path="url(#gc)"><line x1="270" y1="170" x2="730" y2="430" stroke="#7D8794" stroke-width="46"/><line x1="730" y1="170" x2="270" y2="430" stroke="#7D8794" stroke-width="46"/><line x1="270" y1="170" x2="730" y2="430" stroke="#fff" stroke-width="3" stroke-dasharray="14 12"/><line x1="730" y1="170" x2="270" y2="430" stroke="#fff" stroke-width="3" stroke-dasharray="14 12"/></g>';
+ s+='<g class="car1">'+blk(0,0,22,9,'#E4493B')+'</g><g class="car2">'+blk(0,0,22,9,'#F6C945')+'</g>';
+ const grp=(i,inner,cx,cy,plq)=>{const d=DIST[i],sx=stt[i];
+  return'<g class="dist '+sx+'" '+ga(d,i)+'>'+dia(cx,cy,150,80,d.plate,'class="hit" stroke="#fff" stroke-width="3"')+inner+(sx==='locked'||sx==='off'?dia(cx,cy,150,80,'#46535C','opacity=".5"'):'')+(i===nxt?dia(cx,cy,150,80,'none','class="pulse" stroke="#fff" stroke-width="6" stroke-dasharray="14 8"'):'')+plq+'</g>';};
+ /* North: Food Security */
+ let n='';
+ n+=silo(560,185,15,52,'#CFE9E7')+silo(586,200,15,42,'#CFE9E7');
+ n+=blk(470,180,128,42,'#2BB3AD',{top:'#F6C945'})+face('L',470,180,128,42,.1,.4,.3,.75,'#E8F7F6')+face('L',470,180,128,42,.55,.9,.3,.75,'#E8F7F6')+face('R',470,180,128,42,.15,.8,.05,.55,'#1B7F7A');
+ n+=blk(425,212,34,13,'#F6C945')+'<circle cx="418" cy="214" r="4" fill="#333"/><circle cx="436" cy="220" r="4" fill="#333"/>';
+ if(has('storage'))n+=blk(540,225,52,26,'#9FD8F2',{top:'#DDF3FC'})+'<text x="540" y="214" text-anchor="middle" font-size="18">❄️</text>'+silo(612,214,13,36,'#CFE9E7');
+ /* West: Nutrition */
+ let w='';
+ w+=tree(205,285)+tree(215,335,.9);
+ w+=blk(255,300,112,46,'#F6B26B',{top:'#E8602C'});
+ for(let k=0;k<5;k++)w+=face('L',255,300,112,46,k*.2,(k+1)*.2,.62,.84,k%2?'#fff':'#E8602C');
+ w+=face('R',255,300,112,46,.2,.5,.08,.5,'#FFF1CF')+face('R',255,300,112,46,.6,.88,.08,.5,'#FFF1CF')+'<text x="255" y="236" text-anchor="middle" font-size="22">🍎</text>';
+ w+=blk(318,332,38,16,'#7BC96F')+'<circle cx="312" cy="312" r="5" fill="#E4493B"/><circle cx="324" cy="314" r="5" fill="#F6C945"/>'+blk(296,348,34,14,'#F2C94C')+'<circle cx="290" cy="333" r="5" fill="#9BD16B"/>';
+ if(has('market'))w+=blk(214,318,42,22,'#FFE0A6',{top:'#E8602C'})+'<text x="214" y="298" text-anchor="middle" font-size="16">🛒</text>';
+ if(has('garden'))w+=dia(325,282,36,18,'#8A5A33')+'<g fill="#3FA94A"><circle cx="305" cy="282" r="5"/><circle cx="318" cy="276" r="5"/><circle cx="331" cy="282" r="5"/><circle cx="344" cy="288" r="5"/><circle cx="325" cy="288" r="5"/></g>'+'<g fill="#F28C28"><circle cx="312" cy="287" r="3"/><circle cx="337" cy="282" r="3"/></g>';
+ /* East: Well-being */
+ let e='';
+ e+=dia(715,320,90,48,'#8BD27A')+'<ellipse cx="715" cy="320" rx="68" ry="34" fill="none" stroke="#C08B5C" stroke-width="7"/>'+'<ellipse cx="715" cy="320" rx="44" ry="20" fill="#6FBF5E"/>';
+ e+=tree(660,300,.9)+tree(775,345,.9)+tree(800,300,.8);
+ e+=blk(770,282,76,40,'#EAF2FB',{top:'#3E7BDB'})+face('L',770,282,76,40,.2,.8,.25,.7,'#BFD7F6')+'<text x="784" y="285" text-anchor="middle" font-size="22" fill="#E4493B">✚</text>';
+ if(has('park'))e+='<rect x="700" y="318" width="30" height="8" fill="#F6C945"/><circle cx="745" cy="322" r="6" fill="#E4493B"/><rect x="684" y="330" width="26" height="6" fill="#3E7BDB"/>'+tree(690,360,.8);
+ /* South: Safety */
+ let so='';
+ so+=blk(515,418,34,56,'#C85A3C')+'<g class="smoke"><circle cx="515" cy="352" r="9" fill="#EEE"/><circle cx="522" cy="338" r="7" fill="#EEE"/></g>';
+ so+=blk(470,448,116,46,'#4C6FD1',{top:'#E4493B'})+face('L',470,448,116,46,.12,.42,.22,.72,'#DCE6FF')+face('R',470,448,116,46,.15,.45,.05,.62,'#B2342A')+face('R',470,448,116,46,.6,.88,.28,.7,'#DCE6FF')+'<text x="456" y="396" text-anchor="middle" font-size="22">🧑‍🍳</text>';
+ so+=blk(560,468,26,12,'#E4493B')+'<text x="560" y="455" text-anchor="middle" font-size="15">🧯</text>';
+ if(has('kitchen'))so+='<g><rect x="420" y="470" width="40" height="22" rx="5" fill="#1E8E5A" stroke="#fff" stroke-width="2"/><text x="440" y="486" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">✔</text></g>';
+ s+=grp(1,n,500,170,plaque(500,70,DIST[1],stt[1],prog('security')));
+ s+=grp(0,w,270,300,plaque(270,205,DIST[0],stt[0],prog('nutrition')));
+ s+=grp(2,e,730,300,plaque(730,205,DIST[2],stt[2],prog('wellbeing')));
+ /* City Hall */
+ const all=DIST.every(d=>G.badges[d.id])&&S.mode==='full',hs=G.finalDone?'done':(all?'open':'locked');
+ s+='<g class="hall '+hs+'" '+(preview?'':'data-act="hall" role="button" tabindex="0" aria-label="City Hall – Healthy City Certification, '+(G.finalDone?'completed':all?'ready':'locked')+'"')+'>'+blk(500,318,86,44,'#FFF4D2',{top:'#E0A800'})+face('L',500,318,86,44,.15,.85,.2,.7,'#F2C94C')+'<rect x="496" y="248" width="3" height="26" fill="#555"/><polygon points="499,248 520,255 499,262" fill="'+(G.finalDone?'#1E8E5A':'#E4493B')+'"/><circle cx="500" cy="228" r="18" fill="'+(hs==='locked'?'#6F7C86':hs==='done'?'#1E8E5A':'#E0A800')+'" stroke="#fff" stroke-width="3" '+(hs==='open'?'class="pulse"':'')+'/><text x="500" y="235" text-anchor="middle" font-size="19">'+(hs==='locked'?'🔒':hs==='done'?'🏆':'🎓')+'</text></g>';
+ if(has('deco'))s+='<g><ellipse cx="600" cy="335" rx="22" ry="11" fill="#7ED0F2"/><rect x="598" y="316" width="4" height="18" fill="#BFE9FA"/>'+tree(398,330,.8)+tree(620,282,.8)+'</g>';
+ s+=grp(3,so,500,430,plaque(500,525,DIST[3],stt[3],prog('safety')));
+ return s+'</svg>';
+}
+
+/* ---------------- views ---------------- */
+function topBar(){const o=curObj();const t=o?(o.fin?'Healthy City Certification':o.m.title):'All missions done';
+ return'<header class="top"><div class="logo"><i>🏙️</i>BioCity</div><span class="chip obj">🎯 '+t+'</span><span class="chip">Level '+level()+'</span><span class="grow"></span>'+(S.points?'<span class="chip" id="ptsChip">⭐ '+G.points+'</span>':'')+(S.play!=='whole'?'<span class="chip" id="teamChip"></span>':'')+'<button class="iconbtn" data-act="pause" aria-label="Pause game">⏸️</button><button class="iconbtn" data-act="teacher" aria-label="Teacher settings">⚙️</button></header>';}
+function render(){document.body.classList.toggle('board',!!S.board);ensureTeams();const f={welcome:vWelcome,intro:vIntro,city:vCity,district:vDistrict,mission:vMission,final:vMission,result:vResult}[UI.screen];f();chips();}
+function go(s){UI.screen=s;render();window.scrollTo(0,0);}
+
+function vWelcome(){
+ $('#app').innerHTML='<main class="wrap hero"><div><h1 class="disp">BioCity: Build a Healthy World</h1><h2>Every Choice Shapes a Healthier Community.</h2><p>You are the Chief Science Planner of a brand-new town. Use what you know about food, health and safety to grow four districts and earn the Healthy City Certification.</p><div class="row" style="margin-top:1.2rem"><button class="btn go" data-act="start" style="font-size:1.3rem;padding:.8rem 1.8rem">'+(Object.keys(G.done).length?'Continue':'Start playing')+'</button><button class="btn" data-act="teacher">⚙️ Teacher settings</button></div><p class="credit">Grade 5 Science · Chapter 1: Food · Created by AMSanjeev</p></div><div class="mapbox" aria-hidden="true">'+cityMap(true)+'</div></main>';}
+const INTRO=[
+ {t:'Welcome, Chief Science Planner!',x:'Our town needs you. Four districts must become healthy, safe and sustainable. Every decision you make changes the city.'},
+ {t:'Four resources to look after',x:'Food Security, Health, Safety and Community Well-being each go from 0 to 100. Good science decisions raise them. Mistakes never wreck your city: you always get an explanation and another try.'},
+ {t:'How to play',x:'Tap a district on the map, pick a mission, make decisions and read why they work. Finish every mission in a district to earn its badge and open the next one.'}
+];
+function vIntro(){const p=INTRO[UI.ip];
+ $('#app').innerHTML='<main class="wrap" style="min-height:80vh;display:grid;place-items:center"><div class="guide"><div class="face">🧑‍🔬</div><div><div class="bubble"><h2 style="margin-bottom:.4rem">'+p.t+'</h2><p style="margin:.2rem 0 .8rem">'+p.x+'</p>'+(UI.ip===1?'<div class="meters">'+RES.map(meter).join('')+'</div>':'')+'<div class="row"><button class="btn go" data-act="introNext">'+(UI.ip===INTRO.length-1?'Open the city map →':'Next →')+'</button><span class="mut">Dr Sprout, your guide · '+(UI.ip+1)+' of '+INTRO.length+'</span></div></div></div></div></main>';}
+function meter(r){const v=G.res[r.k];return'<div class="meter"><div class="row" style="justify-content:space-between"><span>'+r.e+' '+r.n+'</span><span>'+v+'/100</span></div><div class="bar" role="progressbar" aria-label="'+r.n+'" aria-valuenow="'+v+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+v+'%;background:'+r.c+'"></i></div><small>'+r.d+'</small></div>';}
+function vCity(){
+ const o=curObj();const doneList=[];DIST.forEach(d=>reqM(d.id).forEach(m=>{if(G.done[m.id])doneList.push(m.title+(G.done[m.id].s==='skipped'?' (skipped)':''));}));
+ const bd=DIST.map(d=>'<div class="b '+(G.badges[d.id]?'on':'')+'"><span>'+d.e+'</span>'+d.badge+'</div>').join('')+'<div class="b '+(G.finalDone?'on':'')+'"><span>🏆</span>Master City Planner</div>';
+ const sc=(S.play==='team'&&S.points)?'<div class="card"><h3>Team scores</h3><div class="score">'+G.teamPts.map((p,i)=>'<span class="chip">Team '+(i+1)+': '+p+'</span>').join('')+'</div></div>':'';
+ $('#app').innerHTML=topBar()+'<main class="wrap citygrid"><section><div class="mapbox">'+cityMap(false)+'<div class="maplegend"><span>👆 Tap a district to enter it</span><span>🎓 City Hall opens with all four badges</span></div></div></section><aside class="side"><div class="card"><h3>City resources</h3>'+RES.map(meter).join('')+'</div><div class="card"><h3>Mission board</h3><ul class="olist">'+(o?'<li><span class="cur">▶ '+(o.fin?'Final mission: Healthy City Certification':o.d.name+': '+o.m.title)+'</span></li>':'<li>✅ Everything in this session is complete!</li>')+doneList.slice(-4).map(t=>'<li>✔ '+t+'</li>').join('')+'</ul></div><div class="card"><h3>Badges and certification</h3><div class="badges">'+bd+'</div></div>'+sc+'<div class="card"><h3>City upgrades</h3><div class="upg">'+UPG.map(u=>'<span class="'+(has(u.id)?'on':'')+'" title="'+(has(u.id)?'Unlocked':'Unlocks at '+u.at+' science points')+'">'+u.e+' '+u.n+'</span>').join('')+'</div></div><div class="card"><h3>City news</h3><div class="news">'+(G.news.length?G.news.map(n=>'<div>• '+n+'</div>').join(''):'<div>Make your first decision to see how the city responds.</div>')+'</div></div></aside></main>';}
+const TL={shelf:'Stock the shelves',tray:'Build a meal',decide:'Scenario decisions',match:'Match-up',sort:'Sort the cases',inspect:'Tap to inspect',alloc:'Resource planning',park:'Plan the park',bmi:'Calculator station',kitchen:'Kitchen inspection'};
+const TI={shelf:'🛒',tray:'🍽️',decide:'🤔',match:'🔗',sort:'🗂️',inspect:'🔍',alloc:'📊',park:'🌳',bmi:'🧮',kitchen:'🧯'};
+function vDistrict(){const d=dist(UI.d);const nxt=reqM(d.id).find(m=>!G.done[m.id]);
+ $('#app').innerHTML=topBar()+'<main class="wrap" style="--dc:'+d.c+'"><div class="dband" style="background:'+d.dk+'"><span class="em">'+d.e+'</span><div><h1>'+d.name+'</h1><p>'+d.story+'</p></div><span class="grow"></span><button class="btn" style="color:var(--ink)" data-act="city">← Back to city</button></div><div class="mlist">'+listM(d.id).map(m=>{const dn=G.done[m.id];return'<div class="mrow"><span class="ic">'+TI[m.type]+'</span><div class="grow"><h3>'+m.title+(m.optional?'<span class="tag">Optional</span>':'')+(dn?'<span class="tag '+(dn.s==='skipped'?'skip':'done')+'">'+(dn.s==='skipped'?'Skipped':'Done ✔')+'</span>':(nxt&&nxt.id===m.id?'<span class="tag">Next up</span>':''))+'</h3><div class="mut">'+TL[m.type]+' · '+m.obj+'</div></div><button class="btn '+(dn?'':'go')+'" data-act="startM" data-v="'+m.id+'">'+(dn?'Play again':'Start')+'</button></div>';}).join('')+'</div><p class="mut" style="margin-top:1rem">Badge for this district: <b>'+d.badge+'</b>'+(G.badges[d.id]?' – earned ★':'')+'</p></main>';}
+
+function vMission(){
+ const m=RT.m,fin=RT.final;const d=fin?null:dist(m.d);const c=fin?'#E0A800':d.c,dk=fin?'#6A4B00':d.dk;
+ const rsx=RES.map(r=>'<span>'+r.e+' '+G.res[r.k]+'</span>').join('');
+ const tc=fin?'':'<button class="btn sm" data-act="answers">👁️ Show answers</button><button class="btn sm" data-act="skip">⏭️ Skip (teacher)</button>';
+ $('#app').innerHTML=topBar()+'<main class="wrap" style="--dc:'+c+';--dk:'+dk+'"><div class="mhead"><button class="btn" data-act="city">← City</button><div><div class="kick">'+(fin?'Healthy City Certification · '+(UI.fi+1)+' of '+FINAL.length:d.name)+'</div><h1>'+m.title+'</h1></div><div class="rs" title="City resources">'+rsx+'</div></div><div class="mgrid"><aside class="card story"><p>'+m.scn+'</p><p class="obj"><b>Your goal:</b> '+m.obj+'</p>'+(m.safety||m.tag==='Safe responses'?'<div class="safetybox">Classroom learning only. In a real emergency, move away to safety and get a responsible adult or call your local emergency number (112 in India).</div>':'')+'<button class="btn sm" data-act="hint">💡 Hint</button><div id="hint" class="hint" hidden></div><div class="tctl">'+tc+'</div></aside><section class="card stage" id="stage"></section></div><div id="fb" class="fb" role="status" aria-live="polite"></div></main>';
+ RT.h=null;RT.rs=null;RT.hint=m.hint;
+ ({shelf:rPick,tray:rPick,park:rPick,decide:rDecide,match:rMatch,sort:rSort,inspect:rInspect,alloc:rAlloc,bmi:rBMI,kitchen:rKitchen})[m.type](m);}
+
+/* ---------------- mission flow ---------------- */
+function startMission(id){const m=mis(id);RT={m,h:null,rs:null,done:()=>completeMission(m),earned:0,fx:{},wrong:0,replay:!!G.done[id],final:false};UI.screen='mission';closeModal();render();window.scrollTo(0,0);}
+function startFinal(){UI.fi=0;runFinal();}
+function runFinal(){const m=FINAL[UI.fi];RT={m,h:null,rs:null,done:()=>{G.finalRes[m.tag]=RT.wrong;if(UI.fi<FINAL.length-1){UI.fi++;runFinal();}else{completeFinal();}},earned:0,fx:{},wrong:0,replay:false,final:true};UI.screen='final';render();window.scrollTo(0,0);}
+function completeFinal(){G.finalDone=true;news('Healthy City Certificate earned!');const fx=applyFx({food:5,health:5,safety:5,well:5},'The whole city is healthier');save();go('result');}
+function completeMission(m){const first=!G.done[m.id];G.done[m.id]={s:'done'};const fx=applyFx(m.fx,m.fxWhy);let nb=false;
+ if(first&&!m.optional&&!G.badges[m.d]&&reqM(m.d).every(x=>G.done[x.id])){G.badges[m.d]=true;nb=true;news(dist(m.d).badge+' badge earned!');}
+ save();showComplete(m,nb);}
+function showComplete(m,nb){const d=dist(m.d);const list=listM(m.d).filter(x=>!x.optional&&!G.done[x.id]);const next=list[0];
+ const fxs=RES.filter(r=>RT.fx[r.k]).map(r=>'<span class="fxchip">'+r.e+' '+r.n+' '+(RT.fx[r.k]>0?'+':'')+RT.fx[r.k]+'</span>').join(' ');
+ let extra='';if(nb){const i=DIST.indexOf(d);const nd=DIST[i+1];extra='<div class="cert" style="padding:.8rem;margin:.7rem 0"><div style="font-size:3rem">🏅</div><h2>'+d.badge+' badge earned!</h2><p>'+(S.mode==='full'?(nd?nd.name+' is now open.':'All four districts are complete. City Hall is unlocked!'):'This district is complete. A teacher can pick another district in Settings.')+'</p></div>';}
+ modal('<h2>Mission complete! 🎉</h2><p><b>'+m.title+'</b></p>'+(RT.replay?'<p class="mut">Replay: points and resources only count the first time.</p>':(S.points?'<p>⭐ +'+RT.earned+' science points</p>':''))+(fxs?'<p>'+fxs+'</p><p class="mut">'+(m.fxWhy||'')+'</p>':'')+extra+'<div class="row"><button class="btn" data-act="city">Back to city</button>'+(next&&!nb?'<button class="btn go" data-act="startM" data-v="'+next.id+'">Next mission →</button>':'')+'</div>',false,true);}
+function skipMission(reason){const m=RT.m;G.done[m.id]={s:'skipped',reason};G.skips.push({id:m.id,title:m.title,reason});let nb=false;if(!m.optional&&!G.badges[m.d]&&reqM(m.d).every(x=>G.done[x.id])){G.badges[m.d]=true;nb=true;news(dist(m.d).badge+' badge earned!');}save();closeModal();toast('Mission skipped: '+reason);go('city');}
+
+/* ---------------- reasons & shared ---------------- */
+function runReason(r,cb){const box=$('#reason');if(!box){cb('');return;}
+ const order=shuffle(r.o.map((_,i)=>i));let first=true,solved=false;
+ box.innerHTML='<h3 class="q2">'+r.q+' <span class="bonus">+5 bonus</span></h3><div class="opts">'+order.map(k=>'<button class="opt" data-act="st" data-k="rpick" data-v="'+k+'">'+r.o[k]+'</button>').join('')+'</div>';
+ RT.rs={pick(k,el){if(solved)return;if(k===r.ok){solved=true;el.classList.add('good');box.querySelectorAll('.opt').forEach(b=>b.disabled=true);if(first)award(5,'clear reasoning');RT.rs=null;cb('<b>Good reasoning.</b> '+r.why);}else{first=false;el.classList.add('bad');el.disabled=true;bad();fb('no','<b>Not quite.</b> '+(r.w[k]||'Look back at the science from the chapter.')+' Try another reason.');}}};
+ if(box.scrollIntoView)box.scrollIntoView({block:'nearest'});}
+
+/* ---- decide ---- */
+function rDecide(m){let i=0;const stage=$('#stage');
+ function step(){const s=m.steps[i];RT.hint=s.hint;const order=shuffle(s.o.map((_,k)=>k));let solved=false;
+  stage.innerHTML='<div class="prog">Decision '+(i+1)+' of '+m.steps.length+'</div><h2 class="q">'+s.q+'</h2><div class="opts">'+order.map(k=>'<button class="opt" data-act="st" data-k="pick" data-v="'+k+'">'+s.o[k]+'</button>').join('')+'</div><div id="reason"></div>';fb('','');
+  const last=i===m.steps.length-1;
+  const after=pre=>fb('ok',pre+'<div><button class="btn go" data-act="st" data-k="next">'+(last?(RT.final?(UI.fi===FINAL.length-1?'Finish and get the certificate ✔':'Next challenge →'):'Finish mission ✔'):'Next decision →')+'</button></div>');
+  RT.h=(k,v,el)=>{if(k==='next'){if(last)RT.done();else{i++;step();}return;}if(k!=='pick'||solved)return;v=+v;
+   if(v===s.ok){solved=true;el.classList.add('good');stage.querySelectorAll('#stage>.opts .opt').forEach(b=>b.disabled=true);award(10,'correct decision');const fx=applyFx(s.fx,s.fxWhy);const pre='<b>Yes!</b> '+s.why+fx;
+    if(s.reason){fb('ok',pre);runReason(s.reason,t=>after(pre+'<br>'+t));}else after(pre);}
+   else{el.classList.add('bad');el.disabled=true;bad();fb('no','<b>Not quite.</b> '+(s.w[v]||'Think about the science from the chapter.')+' You can try again.');}};}
+ step();}
+
+/* ---- pick (shelf / tray / park) ---- */
+const EV={
+ shelf(sel){if(sel.length<5)return{ok:false,msg:'Stock at least 5 different foods so the market has variety.'};
+  const g=new Set(sel.filter(id=>!food(id).lim).map(id=>food(id).main));const miss=Object.keys(MAINN).filter(k=>!g.has(k));
+  if(miss.length)return{ok:false,msg:'The market has no '+miss.map(k=>MAINN[k].toLowerCase()).join(' or ')+' yet. People need all four kinds of food.'};
+  const by=k=>sel.filter(id=>!food(id).lim&&food(id).main===k).map(id=>food(id).n).join(', ');
+  return{ok:true,html:'<b>The market is open!</b> It now has foods from every group:<ul style="margin:.3rem 0 0 1.1rem"><li>Carbohydrates (energy): '+by('carb')+'</li><li>Proteins (growth and repair): '+by('protein')+'</li><li>Fats (energy, in small amounts): '+by('fat')+'</li><li>Vitamins and minerals (protection): '+by('vm')+'</li></ul>'+(sel.some(id=>food(id).lim)?'<p>Sweets and fried chips are fine as rare treats, but they do not count as a healthy source of any group.</p>':'')};},
+ tray(sel,cap){const ok=sel.filter(id=>!food(id).lim);const g=new Set(ok.map(id=>food(id).main));const lim=sel.length-ok.length;
+  const need=[['carb','an energy food (carbohydrates), like rice or whole grains'],['protein','a protein food, like pulses, milk or eggs'],['vm','a fruit or vegetable for vitamins and minerals']].filter(x=>!g.has(x[0]));
+  if(need.length)return{ok:false,msg:'This tray is missing '+need.map(x=>x[1]).join(' and ')+'. A balanced meal has variety.'};
+  if(lim>1)return{ok:false,msg:'Too many treats on one tray. Sweets and fried chips are fine rarely and in small amounts. Keep at most one.'};
+  return{ok:true,html:'<b>A balanced tray!</b> '+sel.map(id=>food(id).e+' '+food(id).n).join(', ')+'.<br>Energy foods give energy, protein foods help the body grow and repair, and fruits or vegetables give vitamins and minerals. Fats are needed in small amounts, and different trays can be just as good.'};},
+ park(sel){const bad1=sel.filter(id=>!PARK.find(p=>p.id===id).ok);const good=sel.filter(id=>PARK.find(p=>p.id===id).ok);
+  if(bad1.length)return{ok:false,msg:'These do not encourage activity or healthy habits: '+bad1.map(id=>PARK.find(p=>p.id===id).n).join(', ')+'. Take them out and spend the coins on healthier choices.'};
+  if(good.length<3)return{ok:false,msg:'Choose at least 3 facilities that help people be active and healthy.'};
+  return{ok:true,html:'<b>The park opens!</b> '+good.map(id=>PARK.find(p=>p.id===id).e+' '+PARK.find(p=>p.id===id).n).join(', ')+' give people many ways to be active and learn healthy habits. Every body can benefit.'};}
+};
+function rPick(m){const cfg=m.pick;const stage=$('#stage');let sel=[],locked=false,info='Tap a card to read about it and add it. Tap again to remove it.';
+ const it=id=>cfg.items.find(x=>x.id===id);const spent=()=>sel.reduce((a,id)=>a+(it(id).c||0),0);
+ function tg(f){return f.t?'<div class="tg">'+f.t.map(t=>'<em class="'+(t===f.main?'m':'')+'">'+TAGN[t]+'</em>').join('')+'</div>':'';}
+ function draw(){const left=cfg.budget!=null?cfg.budget-spent():null;
+  stage.innerHTML='<div class="pickbar">'+(cfg.budget!=null?'<span class="coins">🪙 Coins left: <b>'+left+'</b> of '+cfg.budget+'</span>':'')+(cfg.cap?'<span class="coins">🍽️ Tray: <b>'+sel.length+'</b> of '+cfg.cap+'</span>':'')+'</div><div class="tray" aria-label="Chosen items">'+(sel.length?sel.map(id=>'<span class="slot" title="'+it(id).n+'">'+it(id).e+'</span>').join(''):'<span class="mut">Nothing chosen yet</span>')+'</div><div class="foods">'+cfg.items.map(f=>'<button class="food '+(sel.includes(f.id)?'on':'')+'" data-act="st" data-k="tog" data-v="'+f.id+'" aria-pressed="'+sel.includes(f.id)+'" '+(locked?'disabled':'')+'><span class="fe">'+f.e+'</span><b>'+f.n+'</b>'+(f.c!=null?'<span class="cost">🪙 '+f.c+'</span>':'')+tg(f)+'</button>').join('')+'</div><p class="note">'+info+'</p><button class="btn go" data-act="st" data-k="submit" '+(locked?'disabled':'')+'>'+cfg.submit+'</button><div id="reason"></div>';}
+ RT.h=(k,v)=>{if(locked)return;
+  if(k==='tog'){const f=it(v);const on=sel.includes(v);
+   if(on)sel=sel.filter(x=>x!==v);else{if(cfg.cap&&sel.length>=cfg.cap){info='The tray is full. Tap a chosen food to take it off first.';draw();return;}if(cfg.budget!=null&&spent()+f.c>cfg.budget){info='Not enough coins for '+f.n+'. Remove something first.';draw();return;}sel.push(v);}
+   info=f.e+' <b>'+f.n+':</b> '+f.note;draw();return;}
+  if(k==='submit'){const r=EV[cfg.eval](sel,cfg.cap);
+   if(!r.ok){bad();fb('no',r.msg+' <i>Change your choices and try again.</i>');return;}
+   locked=true;draw();award(10,'correct decision');
+   if(m.reason){fb('ok',r.html);runReason(m.reason,t=>fb('ok',r.html+'<br>'+t+finBtn()));}else fb('ok',r.html+finBtn());}};
+ draw();}
+
+/* ---- match ---- */
+function rMatch(m){const P=m.pairs;const L=P.map((_,i)=>i),R=shuffle(L);const done=new Set();let sel=null,shake=null;const stage=$('#stage');
+ function draw(){const item=(side,i,txt)=>{const d=done.has(i);const s=sel&&sel.side===side&&sel.i===i;return'<button class="mi '+(d?'ok':'')+(s?' sel':'')+(shake&&((shake.l===i&&side==='l')||(shake.r===i&&side==='r'))?' shake':'')+'" data-act="st" data-k="'+side+'" data-v="'+i+'" '+(d?'aria-disabled="true"':'')+'>'+(d?'✔ ':'')+txt+'</button>';};
+  stage.innerHTML='<div class="prog">'+done.size+' of '+P.length+' matched</div><div class="cols"><div>'+L.map(i=>item('l',i,P[i].l)).join('')+'</div><div>'+R.map(i=>item('r',i,P[i].r)).join('')+'</div></div>';shake=null;}
+ RT.h=(k,v)=>{if(k!=='l'&&k!=='r')return;const i=+v;if(done.has(i))return;
+  if(!sel||sel.side===k){sel={side:k,i};draw();return;}
+  const li=k==='l'?i:sel.i,ri=k==='r'?i:sel.i;sel=null;
+  if(li===ri){done.add(li);award(0);if(done.size===P.length){draw();award(10,'all matched');fb('ok','<b>All matched!</b> '+P[li].why+finBtn());}else{draw();fb('ok','<b>Match!</b> '+P[li].why);}}
+  else{bad();shake={l:li,r:ri};draw();fb('no','<b>Not quite.</b> '+P[li].l+' does not go with '+P[ri].r+'. '+(m.wrong||'')+' Try again.');}};
+ draw();}
+
+/* ---- sort ---- */
+function rSort(m){const items=shuffle(m.items.map((_,i)=>i));const placed={};let sel=null;const stage=$('#stage');
+ function draw(){stage.innerHTML='<div class="prog">'+Object.keys(placed).length+' of '+m.items.length+' sorted</div><div class="cols" style="grid-template-columns:1fr 1.2fr"><div>'+items.filter(i=>!(i in placed)).map(i=>'<button class="mi '+(sel===i?'sel':'')+'" draggable="true" data-act="st" data-k="item" data-v="'+i+'">'+m.items[i].t+'<small>'+m.items[i].s+'</small></button>').join('')+'</div><div class="bins">'+m.bins.map(b=>'<button class="bin" data-act="st" data-k="bin" data-v="'+b.id+'"><b>'+b.n+'</b><small>'+b.def+'</small>'+items.filter(i=>placed[i]===b.id).map(i=>'<span class="pl">✔ '+m.items[i].t+'</span>').join('')+'</button>').join('')+'</div></div>';
+  stage.querySelectorAll('[draggable]').forEach(el=>el.addEventListener('dragstart',e=>{sel=+el.dataset.v;e.dataTransfer.setData('text/plain',el.dataset.v);}));
+  stage.querySelectorAll('.bin').forEach(b=>{b.addEventListener('dragover',e=>e.preventDefault());b.addEventListener('drop',e=>{e.preventDefault();const i=+e.dataTransfer.getData('text/plain');if(!isNaN(i))place(i,b.dataset.v);});});}
+ function place(i,bid){const it=m.items[i];if(i in placed)return;const b=m.bins.find(x=>x.id===bid);
+  if(it.bin===bid){placed[i]=bid;sel=null;draw();if(Object.keys(placed).length===m.items.length){award(10,'all sorted');fb('ok','<b>All sorted!</b> You used the clues to tell the four kinds of disease apart.'+finBtn());}else fb('ok','<b>Yes.</b> '+it.t+' is '+b.n.toLowerCase()+': '+b.def+'.');}
+  else{bad();sel=null;draw();fb('no','<b>Not quite.</b> '+b.n+' diseases are '+b.def+'. Does that match this case? Try another group.');}}
+ RT.h=(k,v)=>{if(k==='item'){sel=sel===+v?null:+v;draw();}else if(k==='bin'){if(sel===null){fb('info','First tap a case card, then tap its group.');return;}place(sel,v);}};
+ draw();}
+
+/* ---- inspect ---- */
+function rInspect(m){const S2=m.samples;const done=new Set();let cur=null;const stage=$('#stage');let order=shuffle(CAUSES.map((_,i)=>i));
+ function draw(){const s=cur!=null?S2[cur]:null;
+  stage.innerHTML='<div class="prog">'+done.size+' of '+S2.length+' causes found</div><div class="samples">'+S2.map((x,i)=>'<button class="smp '+(done.has(i)?'ok':'')+(cur===i?' sel':'')+'" data-act="st" data-k="smp" data-v="'+i+'"><span class="fe">'+x.e+'</span>'+x.n+(done.has(i)?'<br>✔ '+CAUSES[x.ok]:'')+'</button>').join('')+'</div>'+
+  (s?'<div class="card2"><b>'+s.e+' Storage card: '+s.n+'</b><p>📍 Stored: '+s.store+'</p><p>⏱️ Time: '+s.time+'</p><p>👀 What changed: '+s.seen+'</p><p class="mut">🚫 Never taste or sniff suspicious food. How food looks cannot prove it is safe, so ask an adult.</p></div>'+(done.has(cur)?'':'<h3 class="q2">What is the most likely cause of spoilage?</h3><div class="causes">'+order.map(k=>'<button class="opt" data-act="st" data-k="cause" data-v="'+k+'">'+CAUSES[k]+'</button>').join('')+'</div>'):'<p class="note">Tap a food sample to read its storage card.</p>');}
+ RT.h=(k,v)=>{if(k==='smp'){cur=+v;draw();return;}if(k==='cause'&&cur!=null){const s=S2[cur];if(+v===s.ok){done.add(cur);const wasLast=done.size===S2.length;draw();if(wasLast){award(10,'all causes found');fb('ok','<b>Yes.</b> '+s.why+'<br>Tip: '+s.tip+finBtn());}else fb('ok','<b>Yes.</b> '+s.why+'<br>Tip: '+s.tip);}
+   else{bad();fb('no','<b>Not quite.</b> '+CAUSES[+v]+' is not the best match for this card. Re-read how it was stored and what changed.');}}};
+ draw();}
+
+/* ---- alloc ---- */
+function rAlloc(m){let sel=[],applied=false,ok=false;const stage=$('#stage');
+ function draw(){const red=sel.reduce((a,id)=>a+ALLOC.find(x=>x.id===id).red,0);const after=60-red;
+  stage.innerHTML='<div class="pickbar"><span class="coins">🔧 Upgrades chosen: <b>'+sel.length+'</b> of 2</span></div><div class="opts">'+ALLOC.map(a=>'<button class="opt '+(sel.includes(a.id)?'good':'')+'" data-act="st" data-k="tog" data-v="'+a.id+'" aria-pressed="'+sel.includes(a.id)+'" '+(ok?'disabled':'')+'>'+a.e+' '+a.n+(applied&&sel.includes(a.id)?'<small style="display:block;font-weight:400">Waste −'+a.red+': '+a.why+'</small>':'')+'</button>').join('')+'</div><div class="wbars"><div>Food-waste indicator before: <b>60</b></div><div class="bar"><i style="width:60%;background:#E4493B"></i></div>'+(applied?'<div>After your upgrades: <b>'+after+'</b> (target: 30 or lower)</div><div class="bar"><i style="width:'+after+'%;background:'+(after<=30?'#1E8E5A':'#F28C28')+'"></i></div>':'')+'</div><button class="btn go" data-act="st" data-k="apply" '+(ok?'disabled':'')+'>Build these two upgrades</button><div id="reason"></div>';}
+ RT.h=(k,v)=>{if(ok)return;if(k==='tog'){applied=false;if(sel.includes(v))sel=sel.filter(x=>x!==v);else{if(sel.length>=2){fb('info','You can only afford two upgrades. Tap one to remove it first.');return;}sel.push(v);}draw();return;}
+  if(k==='apply'){if(sel.length!==2){fb('info','Choose exactly two upgrades.');return;}applied=true;const after=60-sel.reduce((a,id)=>a+ALLOC.find(x=>x.id===id).red,0);draw();
+   if(after<=30){ok=true;draw();award(10,'waste reduced');const pre='<b>Waste is down to '+after+'!</b> Your upgrades improved how food is kept.';fb('ok',pre);runReason(m.reason,t=>fb('ok',pre+'<br>'+t+finBtn()));}
+   else{bad();fb('no','<b>Waste is still '+after+'.</b> The target is 30 or lower. Look at which upgrades control temperature, moisture or air, and swap one.');}}};
+ draw();}
+
+/* ---- BMI ---- */
+function rBMI(m){const stage=$('#stage');const PR=[{w:64,h:1.6,a:25.0},{w:54,h:1.5,a:24.0}];const got=[false,false];let calc='';
+ const PEOPLE=[['Fictional adult A',70,1.75],['Fictional adult B',60,1.6],['Fictional adult C',85,1.8]];
+ function draw(){stage.innerHTML='<div class="bmi"><div class="note">🔒 This station is private and optional. <b>Never type your own height or weight.</b> BMI numbers for children need age- and sex-specific charts, so we only practise the maths with made-up adults.</div><h3 class="q2">Calculator</h3><div class="seg">'+PEOPLE.map((p,i)=>'<button data-act="st" data-k="who" data-v="'+i+'">'+p[0]+'</button>').join('')+'</div><p><label>Weight (kg) <input id="bw" type="number" value="70" min="1" step="0.1"></label><label>Height (m) <input id="bh" type="number" value="1.75" min="0.5" max="2.5" step="0.01"></label><button class="btn" data-act="st" data-k="calc">Calculate</button></p><div class="res" id="bres">'+calc+'</div><h3 class="q2">Practice</h3>'+PR.map((p,i)=>'<p>'+(i+1)+'. A made-up adult weighs <b>'+p.w+' kg</b> and is <b>'+p.h+' m</b> tall. BMI = ? <input id="pa'+i+'" type="number" step="0.1" '+(got[i]?'disabled value="'+p.a.toFixed(1)+'"':'')+'> <button class="btn sm" data-act="st" data-k="chk" data-v="'+i+'" '+(got[i]?'disabled':'')+'>'+(got[i]?'✔':'Check')+'</button></p>').join('')+'</div>';}
+ RT.h=(k,v)=>{if(k==='who'){const p=PEOPLE[+v];$('#bw').value=p[1];$('#bh').value=p[2];return;}
+  if(k==='calc'){const w=+$('#bw').value,h=+$('#bh').value;if(!(w>0&&h>0)){calc='Enter a weight and a height above zero.';}else{calc='BMI = '+w+' ÷ ('+h+' × '+h+') = '+w+' ÷ '+(h*h).toFixed(2)+' = <b>'+(w/(h*h)).toFixed(1)+'</b><div class="mut" style="font-size:.85rem;font-weight:400">This is only a maths practice number, not a health result.</div>';}$('#bres').innerHTML=calc;return;}
+  if(k==='chk'){const i=+v,val=parseFloat($('#pa'+i).value);if(Math.abs(val-PR[i].a)<=0.1){got[i]=true;draw();if(got[0]&&got[1]){award(10,'BMI practice');fb('ok','<b>Both correct!</b> BMI = weight in kg ÷ (height in m × height in m).'+finBtn());}else fb('ok','<b>Correct!</b> Now try the other one.');}else{fb('no','<b>Not quite.</b> First work out height × height ('+PR[i].h+' × '+PR[i].h+' = '+(PR[i].h*PR[i].h).toFixed(2)+'), then divide the weight by that number. Round to one decimal place.');}}};
+ draw();}
+
+/* ---- kitchen ---- */
+function kitchenSVG(ks){
+ const A=id=>'data-act="st" data-k="obj" data-v="'+id+'" role="button" tabindex="0" aria-label="'+KOBJ.find(o=>o.id===id).n+'"';
+ const fx=id=>ks[id]==='fixed';
+ const mk=(id,x,y)=>{const s=ks[id];if(!s||s==='none')return'';const hz=s==='haz';return'<g class="'+(hz?'pulse2':'')+'" style="pointer-events:none"><circle cx="'+x+'" cy="'+y+'" r="17" fill="'+(hz?'#E4493B':'#1E8E5A')+'" stroke="#fff" stroke-width="3"/><text x="'+x+'" y="'+(y+6)+'" text-anchor="middle" fill="#fff" font-size="17" font-weight="700">'+(hz?'!':'✔')+'</text></g>';};
+ let s='<svg viewBox="0 0 900 480" class="kit" role="group" aria-label="Kitchen scene with seven objects to inspect"><rect width="900" height="480" fill="#F6E7C8"/><rect y="350" width="900" height="130" fill="#C98E5B"/><rect y="344" width="900" height="10" fill="#A9703F"/><rect x="40" y="205" width="840" height="86" fill="#E3F1F5"/>';
+ for(let x=40;x<880;x+=42)s+='<line x1="'+x+'" y1="205" x2="'+x+'" y2="291" stroke="#C9DEE5" stroke-width="2"/>';
+ s+='<g '+A('win')+'><rect class="hit" x="48" y="52" width="164" height="144" rx="6" fill="#fff" stroke="#8C6A4F" stroke-width="6"/><rect x="58" y="62" width="144" height="124" fill="#A5DCF8"/><line x1="130" y1="62" x2="130" y2="186" stroke="#fff" stroke-width="5"/><line x1="58" y1="124" x2="202" y2="124" stroke="#fff" stroke-width="5"/><circle cx="90" cy="95" r="14" fill="#FFE27A"/></g>';
+ s+='<rect x="40" y="290" width="470" height="16" fill="#8C6A4F"/><rect x="40" y="306" width="470" height="52" fill="#B98A62"/><line x1="195" y1="306" x2="195" y2="358" stroke="#8C6A4F" stroke-width="3"/><line x1="350" y1="306" x2="350" y2="358" stroke="#8C6A4F" stroke-width="3"/>';
+ s+='<rect x="90" y="283" width="110" height="9" rx="3" fill="#9FB1BB"/><rect x="141" y="254" width="8" height="30" fill="#9FB1BB"/><rect x="141" y="252" width="34" height="8" rx="3" fill="#9FB1BB"/>';
+ if(!fx('mix'))s+='<ellipse cx="262" cy="291" rx="62" ry="6" fill="#6EC6F0" opacity=".75"/>';
+ s+='<g '+A('mix')+'><rect class="hit" x="236" y="214" width="84" height="80" fill="transparent"/><rect x="246" y="258" width="60" height="32" rx="6" fill="#D94C4C"/><rect x="254" y="224" width="44" height="36" rx="6" fill="#F5F5F5" stroke="#9AA" stroke-width="2"/>'+(fx('mix')?'':'<path d="M306 276 C330 276 336 250 348 236" fill="none" stroke="#222" stroke-width="4"/><polygon points="340,236 346,226 349,234 356,232 350,242" fill="#FFD21F"/>')+'</g><rect x="344" y="210" width="26" height="26" rx="4" fill="#fff" stroke="#9AA" stroke-width="2"/><circle cx="352" cy="223" r="2.5" fill="#444"/><circle cx="362" cy="223" r="2.5" fill="#444"/>';
+ s+='<g '+A('aid')+'><rect class="hit" x="280" y="116" width="82" height="62" rx="6" fill="#fff" stroke="#1E8E5A" stroke-width="5"/><rect x="316" y="128" width="10" height="36" fill="#E4493B"/><rect x="303" y="141" width="36" height="10" fill="#E4493B"/></g>';
+ s+='<g '+A('ext')+'><rect class="hit" x="404" y="124" width="48" height="112" fill="transparent"/><rect x="412" y="140" width="32" height="86" rx="10" fill="#D32F2F"/><rect x="422" y="126" width="12" height="16" fill="#222"/><path d="M434 132 C452 132 452 160 440 168" fill="none" stroke="#222" stroke-width="3"/><rect x="416" y="170" width="24" height="26" fill="#fff"/></g>';
+ s+='<rect x="540" y="292" width="200" height="70" fill="#5B6770"/><rect x="540" y="282" width="200" height="12" fill="#3E474E"/><circle cx="580" cy="326" r="8" fill="#2E363B"/><circle cx="620" cy="326" r="8" fill="#2E363B"/>';
+ s+='<g '+A('pot')+'><rect class="hit" x="560" y="214" width="150" height="78" fill="transparent"/><rect x="590" y="236" width="92" height="46" rx="6" fill="#9AA5AD"/><rect x="682" y="248" width="26" height="8" fill="#6E7881"/><rect x="584" y="230" width="104" height="8" rx="3" fill="#7F8A93"/>'+(fx('pot')?'':'<g class="flame"><polygon points="596,282 606,262 614,282" fill="#FF8A1F"/><polygon points="618,282 630,258 640,282" fill="#FFB42E"/><polygon points="644,282 654,264 662,282" fill="#FF8A1F"/></g>')+'</g>';
+ if(!fx('cur'))s+='<g '+A('cur')+'><rect class="hit" x="722" y="108" width="68" height="190" fill="transparent"/><rect x="700" y="108" width="110" height="6" fill="#6B4F3A"/><path d="M722 114 L790 114 L796 290 L752 280 L728 292 Z" fill="#F28CA6" stroke="#D86E8A" stroke-width="3"/><path d="M742 114 L744 284 M766 114 L770 284" stroke="#D86E8A" stroke-width="3" fill="none"/></g>';
+ s+='<g '+A('cyl')+'><rect class="hit" x="800" y="262" width="82" height="130" fill="transparent"/><rect x="808" y="292" width="62" height="100" rx="16" fill="#D94C4C"/><rect x="828" y="270" width="22" height="24" fill="#555"/><rect x="822" y="262" width="34" height="8" rx="3" fill="#333"/><path d="M830 276 C800 240 760 270 740 332" fill="none" stroke="#222" stroke-width="5"/>'+(fx('cyl')?'':'<g fill="#C8D2D8" opacity=".75"><circle cx="800" cy="262" r="11"/><circle cx="780" cy="248" r="14"/><circle cx="810" cy="238" r="10"/><circle cx="855" cy="252" r="12"/></g>')+'</g>';
+ s+=mk('win',200,66)+mk('aid',350,122)+mk('ext',446,136)+mk('mix',312,222)+mk('pot',700,226)+mk('cur',794,120)+mk('cyl',864,276);
+ return s+'</svg>';}
+function rKitchen(m){const stage=$('#stage');const fixMode=m.mode==='fix';const ks={};KOBJ.forEach(o=>ks[o.id]=fixMode&&o.hz?'haz':'none');const resolved={};let cur=null,locked=false;
+ const hz=KOBJ.filter(o=>o.hz);
+ function panel(){if(!cur)return'<p class="note">'+(fixMode?'Tap a flashing red hazard to decide what to do.':'Tap an object in the kitchen to inspect it.')+'</p>';const o=KOBJ.find(x=>x.id===cur);
+  if(!fixMode){if(ks[cur]!=='none')return'<div class="card2"><b>'+o.n+'</b><p>'+o.desc+'</p><p>'+o.why+'</p></div>';return'<div class="card2"><b>'+o.n+'</b><p>'+o.desc+'</p><div class="row"><button class="btn" data-act="st" data-k="cls" data-v="safe">✅ It is safe</button><button class="btn" data-act="st" data-k="cls" data-v="haz">⚠️ It is a hazard</button></div></div>';}
+  if(!o.hz)return'<div class="card2"><b>'+o.n+'</b><p>'+o.desc+'</p><p>This one is safe. No action needed.</p></div>';
+  if(resolved[cur])return'<div class="card2"><b>'+o.n+'</b><p>✅ Resolved. '+o.why+'</p></div>';
+  return'<div class="card2"><b>'+o.n+'</b><p>'+o.desc+'</p><div class="opts">'+o.order.map(k=>'<button class="opt" data-act="st" data-k="fix" data-v="'+k+'">'+o.fix[k][0]+'</button>').join('')+'</div></div>';}
+ KOBJ.forEach(o=>{if(o.hz)o.order=shuffle(o.fix.map((_,i)=>i));});
+ function draw(){const cnt=fixMode?Object.keys(resolved).length+' of 4 hazards resolved':Object.values(ks).filter(v=>v!=='none').length+' of 7 objects inspected';
+  stage.innerHTML='<div class="prog">'+cnt+'</div>'+kitchenSVG(ks)+'<div class="kpanel">'+panel()+'</div>';}
+ RT.h=(k,v)=>{if(locked)return;
+  if(k==='obj'){cur=v;draw();return;}
+  if(k==='cls'&&cur){const o=KOBJ.find(x=>x.id===cur);const said=v==='haz';
+   if(said===!!o.hz){ks[cur]=said?'haz':'safe';draw();const all=Object.values(ks).every(x=>x!=='none');
+    if(all){locked=true;award(10,'kitchen inspected');fb('ok','<b>Inspection complete!</b> '+o.why+'<br>You found all 4 hazards and confirmed 3 safe items. Next you will fix the hazards.'+finBtn());}else fb('ok','<b>Right.</b> '+o.why);}
+   else{bad();fb('no','<b>Not quite.</b> '+(said?'Nothing here is unsafe. ':'Look again: ')+(o.hz?'Check how the objects around it could cause harm. '+o.desc:'This item is a safety feature, not a danger.')+' Try again.');}return;}
+  if(k==='fix'&&cur){const o=KOBJ.find(x=>x.id===cur);if(+v===o.ok){resolved[cur]=1;ks[cur]='fixed';draw();award(10,'hazard resolved');const f=applyFx({safety:3},'A critical hazard was resolved');
+    if(Object.keys(resolved).length===4){locked=true;fb('ok','<b>All critical hazards resolved! The kitchen passes inspection. 🎖️</b> '+o.fix[o.ok][1]+f+finBtn());}else fb('ok','<b>Hazard resolved.</b> '+o.fix[o.ok][1]+f);}
+   else{bad();fb('no','<b>Not safe.</b> '+o.fix[+v][1]+' The hazard stays flashing until it is handled safely. Try another action.');}}};
+ draw();}
+
+/* ---- results ---- */
+function vResult(){const rows=FINAL.map(f=>{const w=G.finalRes[f.tag];const lab=w==null?'—':w===0?'✅ Demonstrated first time':'🔁 Demonstrated after practice. Revisit this idea.';return'<tr><td>'+f.tag+'</td><td>'+lab+'</td></tr>';}).join('');
+ $('#app').innerHTML=topBar()+'<main class="wrap" style="max-width:56rem"><div class="cert"><div style="font-size:4rem">🏆</div><h1>Healthy City Certificate</h1><p>Awarded to the Chief Science Planner of BioCity'+(S.play==='team'?' ('+G.teamPts.map((p,i)=>'Team '+(i+1)+(S.points?': '+p:'')).join(' · ')+')':'')+' for using science to build a healthy, safe and sustainable community.</p>'+(S.points?'<p><b>⭐ '+G.points+' science points</b></p>':'')+'<table class="ctable"><tbody>'+rows+'</tbody></table><div class="row" style="justify-content:center">'+RES.map(r=>'<span class="chip">'+r.e+' '+r.n+' '+G.res[r.k]+'</span>').join('')+'</div><p class="mut">The ending celebrates your reasoning: what mattered was understanding why each choice works.</p><div class="row no-print" style="justify-content:center"><button class="btn" data-act="city">Back to city</button><button class="btn" data-act="print">🖨️ Print</button><button class="btn" data-act="askreset">Reset for next class</button></div></div></main>';}
+
+/* ---------------- teacher ---------------- */
+function ansText(m){if(m.type==='decide')return'<ul>'+m.steps.map(s=>'<li>'+s.q.replace(/<[^>]+>/g,'')+' → <b>'+s.o[s.ok]+'</b>'+(s.reason?' (reason: '+s.reason.o[s.reason.ok]+')':'')+'</li>').join('')+'</ul>';
+ if(m.type==='match')return'<ul>'+m.pairs.map(p=>'<li>'+p.l.replace(/<[^>]+>/g,'')+' → <b>'+p.r+'</b></li>').join('')+'</ul>';
+ if(m.type==='sort')return'<ul>'+m.items.map(p=>'<li>'+p.t+' → <b>'+BINS.find(b=>b.id===p.bin).n+'</b></li>').join('')+'</ul>';
+ if(m.type==='inspect')return'<ul>'+m.samples.map(p=>'<li>'+p.n+' → <b>'+CAUSES[p.ok]+'</b></li>').join('')+'</ul>';
+ if(m.type==='shelf')return'Any 5+ foods within 12 coins covering carbohydrates, proteins, fats and vitamins/minerals (sweets and chips do not count).';
+ if(m.type==='tray')return'Any tray with an energy food, a protein food and a fruit/vegetable; at most one treat. Fats optional.';
+ if(m.type==='park')return'At least 3 of: track, playground, sports ground, lawn, garden, health-education centre. Avoid the sweets stall and sofa lounge.';
+ if(m.type==='alloc')return'Any two upgrades that bring waste to 30 or lower, e.g. cold room + dry bins (best), or cold room/dry bins + dates/jam kitchen. Glass walls do not help.';
+ if(m.type==='bmi')return'Practice answers: 64 ÷ 1.6² = 25.0; 54 ÷ 1.5² = 24.0.';
+ if(m.type==='kitchen')return m.mode==='inspect'?'Hazards: gas cylinder, pan on stove, curtain by stove, mixer on wet counter. Safe: window, extinguisher, first-aid kit.':'Safe actions: move away and alert an adult (gas); alert an adult (pan); adult moves cloth (curtain); adult switches off power with dry hands (mixer).';return'';}
+function previewHTML(){return DIST.map(d=>'<h3 style="margin-top:.8rem">'+d.e+' '+d.name+'</h3>'+MISSIONS.filter(m=>m.d===d.id).map(m=>'<div class="pv"><b>'+m.title+'</b> <span class="tag">'+TL[m.type]+'</span><span class="tag">'+(m.tier===1?'10 min+':m.tier===2?'20 min+':'30 min only')+'</span>'+(m.optional?'<span class="tag">Optional</span>':'')+'<br>'+m.obj+'<br>'+ansText(m)+'</div>').join('')).join('')+'<h3 style="margin-top:.8rem">🏆 Final mission</h3>'+FINAL.map(f=>'<div class="pv"><b>'+f.title+'</b><br>'+ansText(f)+'</div>').join('');}
+function teacherHTML(){const seg=(k,opts)=>'<div class="seg">'+opts.map(o=>'<button class="'+(S[k]===o[0]?'on':'')+'" data-act="set" data-k="'+k+'" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
+ const tb=DIST.map(d=>{const p=prog(d.id);return'<tr><td>'+d.e+' '+d.name+'</td><td>'+p.done+' of '+p.total+'</td><td>'+(G.badges[d.id]?'★':'')+'</td></tr>';}).join('');
+ const rv=Object.keys(G.review).sort((a,b)=>G.review[b]-G.review[a]).map(t=>'<div class="pv"><b>'+t+'</b> ('+G.review[t]+' misses)<br>'+(TAGS[t]||'')+'</div>').join('')||'<p class="mut">No review items yet.</p>';
+ const sk=G.skips.length?'<ul>'+G.skips.map(s=>'<li>'+s.title+' – '+s.reason+'</li>').join('')+'</ul>':'<p class="mut">No skipped missions.</p>';
+ return'<h2>⚙️ Teacher settings</h2><div class="fld"><b>Game mode</b>'+seg('mode',[['full','Full game'],['single','One district']])+(S.mode==='single'?'<div style="margin-top:.4rem">'+seg('district',DIST.map(d=>[d.id,d.e+' '+d.name.replace(' District','')]))+'</div>':'')+'</div><div class="fld"><b>Session length</b>'+seg('length',[[10,'10 min'],[20,'20 min'],[30,'30 min']])+'<small class="mut">Shorter sessions use fewer missions per district.</small></div><div class="fld"><b>Play style</b>'+seg('play',[['whole','Whole class'],['team','Teams'],['individual','Individual']])+(S.play==='team'?'<div style="margin-top:.4rem">'+seg('teams',[[2,'2 teams'],[3,'3 teams'],[4,'4 teams'],[5,'5 teams']])+'</div>':'')+'</div><div class="fld"><b>Points shown</b>'+seg('points',[[true,'On'],[false,'Off (discussion mode)']])+'</div><div class="fld"><b>Smart-board mode</b>'+seg('board',[[true,'On (bigger text, fewer controls)'],[false,'Off']])+'</div><div class="row"><button class="btn" data-act="preview">📋 Preview questions and answers</button><button class="btn" data-act="resetRes">Reset resources</button><button class="btn" data-act="askrestart">Restart game</button><button class="btn" data-act="askreset">Reset city for new class</button></div><h3 style="margin-top:1rem">Progress</h3><table class="ctable"><tbody>'+tb+'<tr><td>🏆 Final mission</td><td>'+(G.finalDone?'Done':'—')+'</td><td></td></tr></tbody></table><h3>Skipped missions</h3>'+sk+'<h3 style="margin-top:.8rem">Review items and common misconceptions</h3>'+rv+'<p class="mut" style="margin-top:.8rem">Teacher note: please check the Vitamin E and Vitamin K conditions (weak muscles; slow blood clotting) against your chapter table, and edit if the textbook words them differently.</p><div class="row" style="margin-top:.8rem"><button class="btn go" data-act="applyT">Done</button></div>';}
+
+/* ---------------- actions ---------------- */
+const ACT={
+ start(){if(!G.seenIntro){G.seenIntro=true;save();UI.ip=0;go('intro');}else go('city');},
+ introNext(){if(UI.ip<INTRO.length-1){UI.ip++;render();}else go('city');},
+ city(){closeModal();go('city');},
+ dist(d){const i=DIST.findIndex(x=>x.id===d.v);const s=dState(i);if(s==='locked'){toast('Earn the '+DIST[i-1].badge+' badge to open this district.');return;}if(s==='off'){toast('This district is not part of this session.');return;}UI.d=d.v;go('district');},
+ hall(){if(G.finalDone){go('result');return;}if(S.mode==='full'&&DIST.every(x=>G.badges[x.id])){startFinal();return;}toast(S.mode==='single'?'The final mission is part of the full game.':'Earn all four district badges to unlock the Healthy City Certification.');},
+ startM(d){startMission(d.v);},
+ hint(){const h=$('#hint');if(!h)return;h.hidden=false;h.textContent='💡 '+(RT.hint||RT.m.hint);},
+ pause(){modal('<h2>⏸️ Game paused</h2><p>Your city is saved. Press Resume when you are ready.</p><div class="row"><button class="btn go" data-act="close">▶ Resume</button></div>',false,true);},
+ close(){closeModal();},
+ teacher(){modal(teacherHTML(),true,true);},
+ set(d){let v=d.v;if(v==='true')v=true;else if(v==='false')v=false;else if(!isNaN(v)&&v!=='')v=+v;S[d.k]=v;if(d.k==='play'||d.k==='teams')ensureTeams();save();modal(teacherHTML(),true,true);render();},
+ applyT(){closeModal();render();},
+ preview(){modal('<h2>Questions and accepted answers</h2>'+previewHTML()+'<div class="row" style="margin-top:.8rem"><button class="btn go" data-act="teacher">← Back to settings</button></div>',true,true);},
+ answers(){const m=RT.m;modal('<h2>'+m.title+'</h2><p>'+m.obj+'</p><div class="pv">'+ansText(m)+'</div><div class="row"><button class="btn go" data-act="close">Close</button></div>');},
+ skip(){modal('<h2>Skip this mission?</h2><p>Pick a reason. It is recorded in the teacher panel.</p><div class="opts">'+['Short on time','Students need to revisit the topic first','Technical problem','Other'].map(r=>'<button class="opt" data-act="skipdo" data-v="'+r+'">'+r+'</button>').join('')+'</div><div class="row" style="margin-top:.7rem"><button class="btn" data-act="close">Cancel</button></div>');},
+ skipdo(d){skipMission(d.v);},
+ resetRes(){G.res={...RES0};save();toast('Resources reset.');render();},
+ askrestart(){askBox('This clears all mission progress, badges and points, but keeps the teacher settings.','restart');},
+ restart(){const s=S;G=newGame();G.seenIntro=true;S=s;save();closeModal();go('city');},
+ askreset(){askBox('This resets the whole city, settings, review items and scores for a new class.','resetall');},
+ resetall(){G=newGame();S=newSet();save();closeModal();go('welcome');},
+ print(){try{window.print();}catch(e){toast('Printing is not available here.');}}
+};
+function stHandler(k,v,el){if(k==='rpick'&&RT.rs){RT.rs.pick(+v,el);return;}
+ if(k==='fin'){if(S.play==='team'){G.turn++;chips();}RT.done&&RT.done();return;}
+ if(k==='next'&&S.play==='team'){G.turn++;chips();}
+ if(RT.h)RT.h(k,v,el);}
+document.addEventListener('click',e=>{
+ const bk=e.target.closest('.mback');if(bk&&e.target===bk&&bk.dataset.close==='1'){closeModal();return;}
+ const b=e.target.closest('[data-act]');if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;
+ const a=b.dataset.act;if(a==='st'){stHandler(b.dataset.k,b.dataset.v,b);return;}const f=ACT[a];if(f)f(b.dataset,b);});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('svg [data-act]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}if(e.key==='Escape'){const bk=$('#overlay .mback');if(bk&&bk.dataset.close==='1')closeModal();}});
+
+load();ensureTeams();render();
+</script>
+</body>
+</html>
